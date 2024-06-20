@@ -8,7 +8,7 @@ const SellerTiles = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get('http://192.168.0.72:5000/api/sellers')
+    axios.get('http://192.168.89.221:5000/api/sellers')
       .then(response => setSellers(response.data))
       .catch(error => console.error('Error fetching sellers:', error));
   }, []);

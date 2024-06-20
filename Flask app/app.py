@@ -14,26 +14,38 @@ def get_sellers():
     return jsonify(unique_sellers)
 
 @app.route('/api/sellers/<seller_name>/riders', methods=['GET'])
-def get_rider_codes(seller_name):
-    rider_codes = df[df['Seller name'] == seller_name]['Rider code'].unique().tolist()
-    return jsonify(rider_codes)
+def get_riders_with_product_count(seller_name):
+    riders = df[df['Seller name'] == seller_name]['Rider code'].unique().tolist()
+    riders_with_counts = []
+    
+    for rider_code in riders:
+        products_count = len(df[(df['Seller name'] == seller_name) & (df['Rider code'] == rider_code)])
+        riders_with_counts.append({
+            'riderCode': rider_code,
+            'productCount': products_count
+        })
+    
+    return jsonify(riders_with_counts)
 
 @app.route('/api/products', methods=['GET'])
 def get_products():
     seller_name = request.args.get('seller_name')
     rider_code = request.args.get('rider_code')
     
-    print(f"Received request for seller_name: {seller_name}, rider_code: {rider_code}")
-    
     try:
         # Filter products based on seller_name and rider_code
-        products = df[(df['Seller name'] == seller_name) & (df['Rider code'] == rider_code)][['SKU', 'Name', 'Photolink', 'Quantity']].to_dict(orient='records')
+        filtered_df = df[(df['Seller name'] == seller_name) & (df['Rider code'] == rider_code)]
         
-        if not products:
-            print(f"No products found for seller_name: {seller_name}, rider_code: {rider_code}")
-            return jsonify({'error': 'Products not found for the given seller_name and rider_code'}), 404
+        # Calculate the total quantity for each order code using the filtered DataFrame
+        order_code_quantities = filtered_df.groupby('Order code')['Quantity'].sum().to_dict()
         
-        return jsonify(products)
+        # Convert the filtered DataFrame to a list of dictionaries
+        products = filtered_df[['Order code', 'SKU', 'Name', 'Photolink', 'Quantity']].to_dict(orient='records')
+        
+        return jsonify({
+            'orderCodeQuantities': order_code_quantities,
+            'products': products
+        })
     except Exception as e:
         print(f"Error occurred: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500

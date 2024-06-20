@@ -6,12 +6,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 const RiderCodesScreen = () => {
   const { params } = useRoute();
   const { sellerName } = params;
-  const [riderCodes, setRiderCodes] = useState([]);
+  const [ridersWithCounts, setRidersWithCounts] = useState([]);
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://192.168.0.72:5000/api/sellers/${sellerName}/riders`)
-      .then(response => setRiderCodes(response.data))
+    axios.get(`http://192.168.89.221:5000/api/sellers/${sellerName}/riders`)
+      .then(response => setRidersWithCounts(response.data))
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
   }, [sellerName]);
 
@@ -21,14 +21,16 @@ const RiderCodesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Rider Codes for {sellerName}:</Text>
+      <Text style={styles.title}>Rider for {sellerName}:</Text>
       <FlatList
-        data={riderCodes}
+        data={ridersWithCounts}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleRiderPress(item)}>
+          <TouchableOpacity onPress={() => handleRiderPress(item.riderCode)}>
             <View style={styles.tile}>
-              <Text style={styles.text}>{item}</Text>
+              <Text style={styles.text}>
+                {item.riderCode}({item.productCount} {item.productCount === 1 ? 'item' : 'items'})
+              </Text>
             </View>
           </TouchableOpacity>
         )}
