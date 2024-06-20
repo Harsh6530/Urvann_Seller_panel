@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-const RiderCodesScreen = ({ route }) => {
-  const { sellerName } = route.params;
+const RiderCodesScreen = () => {
+  const { params } = useRoute();
+  const { sellerName } = params;
   const [riderCodes, setRiderCodes] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     axios.get(`http://192.168.0.72:5000/api/sellers/${sellerName}/riders`)
       .then(response => setRiderCodes(response.data))
-      .catch(error => console.error(`Error fetching riders for ${sellerName}:`, error));
+      .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
   }, [sellerName]);
+
+  const handleRiderPress = (riderCode) => {
+    navigation.navigate('ProductDetails', { sellerName, riderCode });
+  };
 
   return (
     <View style={styles.container}>
@@ -19,9 +26,11 @@ const RiderCodesScreen = ({ route }) => {
         data={riderCodes}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View style={styles.riderTile}>
-            <Text style={styles.text}>{item}</Text>
-          </View>
+          <TouchableOpacity onPress={() => handleRiderPress(item)}>
+            <View style={styles.tile}>
+              <Text style={styles.text}>{item}</Text>
+            </View>
+          </TouchableOpacity>
         )}
       />
     </View>
@@ -40,10 +49,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  riderTile: {
-    padding: 15,
-    backgroundColor: '#f0f0f0',
-    marginVertical: 5,
+  tile: {
+    padding: 20,
+    marginVertical: 10,
+    backgroundColor: '#f9f9f9',
+    borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 5,
   },
   text: {
