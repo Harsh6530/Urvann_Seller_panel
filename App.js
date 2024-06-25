@@ -1,17 +1,31 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import SellerTiles from './screens/SellerTiles'; // Adjust path as per your actual file location
-import RiderCodesScreen from './screens/RiderCodesScreen'; // Adjust path as per your actual file location
+import RiderCodesScreen from './screens/RiderCodesScreen';
 import ProductDetailsScreen from './screens/ProductDetailsScreen';
+import LoginScreen from './screens/LoginScreen'; // Import your LoginScreen component
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import RegisterScreen from './screens/RegisterScreen'; // Import your RegisterScreen component
 
 const Stack = createStackNavigator();
 
 const App = () => {
+  const screenOptions = {
+    headerStyle: {
+      backgroundColor: '#287238',
+    },
+    headerTintColor: '#fff', // Title color
+    headerTitleStyle: {
+      fontWeight: 'bold',
+    },
+  };
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="SellerTiles">
-        <Stack.Screen name="SellerTiles" component={SellerTiles} options={{ title: 'Sellers' }} />
+      <Stack.Navigator initialRouteName="Login" screenOptions={screenOptions}>
+        <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Login' }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Register' }} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="RiderCodes" component={RiderCodesScreen} options={{ title: 'Rider Codes' }} />
         <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} options={{ title: 'Product Details' }} />
       </Stack.Navigator>

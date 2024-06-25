@@ -10,7 +10,7 @@ const RiderCodesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://192.168.89.221:5000/api/sellers/${sellerName}/riders`)
+    axios.get(`http://192.168.0.69:5000/api/sellers/${sellerName}/riders`)
       .then(response => setRidersWithCounts(response.data))
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
   }, [sellerName]);
@@ -21,15 +21,18 @@ const RiderCodesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Rider for {sellerName}:</Text>
+      <Text style={styles.title}>Riders for {sellerName}:</Text>
       <FlatList
         data={ridersWithCounts}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleRiderPress(item.riderCode)}>
             <View style={styles.tile}>
+              <Text style={styles.productCount}>
+                {item.riderCode}
+              </Text>
               <Text style={styles.text}>
-                {item.riderCode}({item.productCount} {item.productCount === 1 ? 'item' : 'items'})
+                {item.productCount} {item.productCount === 1 ? 'item' : 'items'}
               </Text>
             </View>
           </TouchableOpacity>
@@ -44,7 +47,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 20,
   },
   title: {
     fontSize: 20,
@@ -52,12 +55,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 20,
     marginVertical: 10,
     backgroundColor: '#f9f9f9',
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
+  },
+  productCount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginRight: 10,
   },
   text: {
     fontSize: 18,

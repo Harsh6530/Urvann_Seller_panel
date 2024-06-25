@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Image, ActivityIndicator, ScrollView } from 'react-native';
 import axios from 'axios';
+import Swiper from 'react-native-swiper';
 
 const ProductDetailsScreen = ({ route }) => {
   const { sellerName, riderCode } = route.params;
   const [products, setProducts] = useState([]);
-  const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
   const [loading, setLoading] = useState(true);
+  const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://192.168.89.221:5000/api/products', {
+        const response = await axios.get('http://192.168.0.69:5000/api/products', {
           params: {
             seller_name: sellerName,
             rider_code: riderCode
@@ -37,79 +38,97 @@ const ProductDetailsScreen = ({ route }) => {
     );
   }
 
+  // Group products by Final code
+  const groupedProducts = {};
+  products.forEach(product => {
+    if (!groupedProducts[product['FINAL']]) {
+      groupedProducts[product['FINAL']] = [];
+    }
+    groupedProducts[product['FINAL']].push(product);
+  });
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-      <Text style={styles.header}>Product Details</Text>
-      {Object.entries(orderCodeQuantities).map(([orderCode, quantity]) => (
-        <View key={orderCode} style={styles.orderCodeContainer}>
-          <Text style={styles.orderCodeText}>
-            Order Code: {orderCode} - Total Quantity: {quantity}
-          </Text>
-          {products
-            .filter(product => product['Order code'] === orderCode)
-            .map((product, index) => (
+    <View style={styles.container}>
+      <Swiper style={styles.wrapper} showsButtons loop={false}>
+        {Object.keys(groupedProducts).map(finalCode => (
+          <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
+            <View style={styles.orderContainer}>
+              <Text style={styles.header}>Order Code: {finalCode}</Text>
+              <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
+            </View>
+            {groupedProducts[finalCode].map((product, index) => (
               <View key={index} style={styles.productContainer}>
-                <Image source={{ uri: product.Photolink }} style={styles.image} />
-                <Text style={styles.text}>Order Code: {product['Order code']}</Text>
-                <Text style={styles.text}>SKU: {product.SKU}</Text>
-                <Text style={styles.text}>Name: {product.Name}</Text>
-                <Text style={styles.text}>Quantity: {product.Quantity}</Text>
+                <Image source={{ uri: product.image1 }} style={styles.image} />
+                <View style={styles.textContainer}>
+                  <Text style={styles.text}>SKU: {product.line_item_sku}</Text>
+                  <Text style={styles.text}>Name: {product.line_item_name}</Text>
+                  <Text style={styles.text}>Quantity: {product.total_item_quantity}</Text>
+                </View>
               </View>
             ))}
-        </View>
-      ))}
-    </ScrollView>
+          </ScrollView>
+        ))}
+      </Swiper>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingTop: 20,
+  },
+  wrapper: {},
+  scrollViewContainer: {
+    color: 'Yellow',
+    flexGrow: 1,
     backgroundColor: '#fff',
   },
-  scrollViewContainer: {
-    flexGrow: 1,
+  orderContainer: {
+    marginBottom: 20,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    width: '90%',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    alignSelf: 'center',
   },
   header: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    textAlign: 'center',
   },
-  orderCodeContainer: {
-    width: '80%',
-    marginBottom: 20,
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-  },
-  orderCodeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  subHeader: {
+    fontSize: 20,
+    color: '#555',
+    textAlign: 'center',
   },
   productContainer: {
-    marginBottom: 20,
+    flexDirection: 'row',
+    marginBottom: 10,
+    backgroundColor: '#f9f9f9',
     padding: 10,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
+    width: '90%',
+    alignSelf: 'center',
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 100,
+    height: 100,
     resizeMode: 'cover',
-    marginBottom: 10,
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   text: {
-    fontSize: 18,
+    fontSize: 16,
     marginBottom: 5,
   },
 });

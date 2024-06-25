@@ -1,35 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
+// Import your logo image
+import Logo from '../assets/urvann.png'; // Replace with your actual logo path
+
 const SellerTiles = () => {
-  const [sellers, setSellers] = useState([]);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
-  useEffect(() => {
-    axios.get('http://192.168.89.221:5000/api/sellers')
-      .then(response => setSellers(response.data))
-      .catch(error => console.error('Error fetching sellers:', error));
-  }, []);
-
-  const handleSellerPress = (sellerName) => {
-    navigation.navigate('RiderCodes', { sellerName });
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('http://192.168.0.69:5000/api/login', { username, password });
+      if (response.data.success) {
+        navigation.navigate('RiderCodes', { sellerName: username });
+      } else {
+        Alert.alert('Login failed', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      Alert.alert('Login failed', 'An error occurred. Please try again.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={sellers}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleSellerPress(item)}>
-            <View style={styles.tile}>
-              <Text style={styles.text}>{item}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+      <Image source={Logo} style={styles.logo} resizeMode="contain" />
+      <Text style={styles.title}>Seller Login</Text>
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          placeholderTextColor="#aaa"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#aaa"
+        />
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.footer}>
+        <Text style={styles.forgotPassword}>Forgot Password?</Text>
+      </View>
     </View>
   );
 };
@@ -37,21 +60,57 @@ const SellerTiles = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    justifyContent: 'top',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 30,
   },
-  tile: {
+  logo: {
+    width: 200, // Adjust size as needed
+    height: 200, // Adjust size as needed
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    color: '#333',
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 350,
+    backgroundColor: '#fff',
     padding: 20,
-    marginVertical: 10,
-    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    elevation: 3,
+  },
+  input: {
+    height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
+    marginBottom: 20,
+    paddingHorizontal: 15,
     borderRadius: 5,
-  },
-  text: {
     fontSize: 18,
     color: '#333',
+  },
+  loginButton: {
+    backgroundColor: '#287238',
+    paddingVertical: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  footer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  forgotPassword: {
+    fontSize: 16,
+    color: '#287238',
   },
 });
 

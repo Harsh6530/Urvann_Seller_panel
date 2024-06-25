@@ -1,25 +1,82 @@
 from flask import Flask, jsonify, request
-import pandas as pd
 from flask_cors import CORS
+from flask_pymongo import PyMongo
+from bson.objectid import ObjectId
+import pandas as pd
+import bcrypt
+import logging
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# Load Excel data into a pandas DataFrame
-df = pd.read_excel('Seller.xlsx', sheet_name='Inputs', engine='openpyxl')
+# Configure MongoDB connection
+app.config['MONGO_URI'] = 'mongodb+srv://sharmaharsh634:urvann%401234@sellerlogin.cjywul3.mongodb.net/SellerLogin?retryWrites=true&w=majority'
+mongo = PyMongo(app)
+
+# Simple user schema for MongoDB
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+# MongoDB collection
+users_collection = mongo.db.Seller_login
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    username = request.json.get('username')
+    password = request.json.get('password')
+
+    # Check if username already exists
+    if users_collection.find_one({'username': username}):
+        return jsonify({'message': 'User already exists'}), 400
+
+    # Hash the password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    # Insert new user into MongoDB
+    user = User(username, hashed_password)
+    users_collection.insert_one(user.__dict__)
+
+    return jsonify({'message': 'User registered successfully'}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    username = request.json.get('username')
+    password = request.json.get('password')
+
+    # Find user by username
+    user = users_collection.find_one({'username': username})
+
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        return jsonify({'token': str(user['_id'])}), 200
+    else:
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+# Load Excel data into pandas DataFrames from the correct sheets
+df_seller = pd.read_excel('Seller.xlsx', sheet_name='Order data', engine='openpyxl')
+df_products = pd.read_excel('Products.xlsx', sheet_name='Order data', engine='openpyxl')
+
+# Simple user authentication data
+user_data = {seller: f"{seller}@1234" for seller in df_seller['seller_name'].unique()}
 
 @app.route('/api/sellers', methods=['GET'])
 def get_sellers():
-    unique_sellers = df['Seller name'].unique().tolist()
+    unique_sellers = df_seller['seller_name'].unique().tolist()
     return jsonify(unique_sellers)
 
 @app.route('/api/sellers/<seller_name>/riders', methods=['GET'])
 def get_riders_with_product_count(seller_name):
-    riders = df[df['Seller name'] == seller_name]['Rider code'].unique().tolist()
+    riders = df_seller[df_seller['seller_name'] == seller_name]['Driver Name'].unique().tolist()
     riders_with_counts = []
     
     for rider_code in riders:
-        products_count = len(df[(df['Seller name'] == seller_name) & (df['Rider code'] == rider_code)])
+        # Sum the quantities for each rider
+        products_count = df_seller[(df_seller['seller_name'] == seller_name) & (df_seller['Driver Name'] == rider_code)]['total_item_quantity'].sum()
+        
+        # Convert products_count to int if it's an int64
+        products_count = int(products_count)
+        
         riders_with_counts.append({
             'riderCode': rider_code,
             'productCount': products_count
@@ -34,13 +91,16 @@ def get_products():
     
     try:
         # Filter products based on seller_name and rider_code
-        filtered_df = df[(df['Seller name'] == seller_name) & (df['Rider code'] == rider_code)]
+        filtered_df = df_seller[(df_seller['seller_name'] == seller_name) & (df_seller['Driver Name'] == rider_code)]
         
-        # Calculate the total quantity for each order code using the filtered DataFrame
-        order_code_quantities = filtered_df.groupby('Order code')['Quantity'].sum().to_dict()
+        # Merge with df_products to get image1 based on SKU
+        merged_df = pd.merge(filtered_df, df_products[['sku', 'image1']], left_on='line_item_sku', right_on='sku', how='left')
+        
+        # Calculate the total total_item_quantity for each Final using the filtered DataFrame
+        order_code_quantities = merged_df.groupby('FINAL')['total_item_quantity'].sum().to_dict()
         
         # Convert the filtered DataFrame to a list of dictionaries
-        products = filtered_df[['Order code', 'SKU', 'Name', 'Photolink', 'Quantity']].to_dict(orient='records')
+        products = merged_df[['FINAL', 'line_item_sku', 'line_item_name', 'image1', 'total_item_quantity']].to_dict(orient='records')
         
         return jsonify({
             'orderCodeQuantities': order_code_quantities,
