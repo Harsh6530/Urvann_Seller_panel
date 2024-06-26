@@ -1,50 +1,42 @@
+import os
 from flask import Flask, request, jsonify
 import pandas as pd
 from pymongo import MongoClient
 
 app = Flask(__name__)
 
-def upload_excel_to_mongodb(file, mongo_url, database_name, collection_name):
-    try:
-        # Read the file into a pandas DataFrame
-        df = pd.read_excel(file)
-        
-        # Convert DataFrame to a list of dictionaries
-        data = df.to_dict(orient='records')
-        
-        # Connect to MongoDB
-        client = MongoClient(mongo_url)
-        db = client[database_name]
-        collection = db[collection_name]
-        
-        # Insert data into MongoDB
-        collection.insert_many(data)
-        
-        return {"message": "Data uploaded successfully!"}
-    
-    except Exception as e:
-        return {"error": str(e)}
+# Connect to MongoDB
+client = MongoClient('mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/?retryWrites=true&w=majority&appName=UrvannGenie')  # Replace with your MongoDB connection URI
+db = client['UrvannSellerApp']  # Connect to the database
+collection = db['photos']  # Connect to the collection
 
-@app.route('/upload', methods=['POST'])
-def upload_data():
-    # Check if a file is in the request
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part in the request"}), 400
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-
-    mongo_url = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/?retryWrites=true&w=majority&appName=UrvannGenie'  # Update this with your MongoDB connection string if needed
-    database_name = 'UrvannSellerApp'
-    collection_name = 'photos'
+@app.route('/photos/upload', methods=['POST'])
+def upload_photos():
+    # Specify the path to Products.xlsx
+    excel_file_path = 'Products.xlsx'  # Replace with the actual path
     
-    result = upload_excel_to_mongodb(file, mongo_url, database_name, collection_name)
+    if not os.path.isfile(excel_file_path):
+        return jsonify({'error': f"File not found: {excel_file_path}"}), 404
     
-    if "error" in result:
-        return jsonify(result), 500
+    # Read Excel file into a pandas DataFrame
+    df = pd.read_excel(excel_file_path)
     
-    return jsonify(result), 200
+    # Iterate over each row in the DataFrame
+    for index, row in df.iterrows():
+        name = row['name']
+        sku = row['sku']
+        image_url = row['image1']
+        
+        # Insert photo data into MongoDB collection
+        photo_data = {
+            'name': name,
+            'sku': sku,
+            'image_url': image_url
+        }
+        collection.insert_one(photo_data)
+    
+    return jsonify({'message': 'Photos uploaded successfully'}), 200
 
 if __name__ == '__main__':
+    # Run Flask app
     app.run(debug=True)

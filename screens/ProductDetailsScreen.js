@@ -12,7 +12,7 @@ const ProductDetailsScreen = ({ route }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://192.168.0.69:5000/api/products', {
+        const response = await axios.get('http://192.168.0.66:5000/api/products', {
           params: {
             seller_name: sellerName,
             rider_code: riderCode
@@ -47,10 +47,13 @@ const ProductDetailsScreen = ({ route }) => {
     groupedProducts[product['FINAL']].push(product);
   });
 
+  // Sort the final codes in ascending order
+  const sortedFinalCodes = Object.keys(groupedProducts).sort((a, b) => a.localeCompare(b));
+
   return (
     <View style={styles.container}>
       <Swiper style={styles.wrapper} showsButtons loop={false}>
-        {Object.keys(groupedProducts).map(finalCode => (
+        {sortedFinalCodes.map(finalCode => (
           <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
             <View style={styles.orderContainer}>
               <Text style={styles.header}>Order Code: {finalCode}</Text>
@@ -81,7 +84,6 @@ const styles = StyleSheet.create({
   },
   wrapper: {},
   scrollViewContainer: {
-    color: 'Yellow',
     flexGrow: 1,
     backgroundColor: '#fff',
   },

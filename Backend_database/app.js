@@ -4,32 +4,24 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
-const fs = require('fs');
-const path = require('path');
-const xlsx = require('xlsx');
+const Photo = require('./models/photo'); // Import the Photo model
+const User = require('./models/userDetails'); // Use the existing User model
+const Route = require('./models/route'); // Import the Route model
 
 app.use(express.json());
 app.use(cors()); // Enable CORS for all routes
 
 // MongoDB connection URI
-const MONGODB_URI = 'mongodb+srv://sharmaharsh634:urvann%401234@sellerlogin.cjywul3.mongodb.net/?retryWrites=true&w=majority&appName=SellerLogin';
+const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error(err));
 
-// Load your User schema from './userDetails'
-const User = require('./userDetails');
-
 // Hardcoded JWT secret key (use this only for development/testing)
 const JWT_SECRET = 'your_secret_key'; // Replace 'your_secret_key' with a strong secret key
 
-// Load Excel data into pandas DataFrames from the correct sheets
-const df_seller = xlsx.readFile('Seller.xlsx').Sheets['Order data'];
-const df_products = xlsx.readFile('Products.xlsx').Sheets['Order data'];
-
-// Routes
 // Register route
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
@@ -87,13 +79,11 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Example endpoints from Flask integration
 // GET /api/sellers
-app.get('/api/sellers', (req, res) => {
+app.get('/api/sellers', async (req, res) => {
   try {
-    const df_seller_json = xlsx.utils.sheet_to_json(df_seller);
-    const uniqueSellers = [...new Set(df_seller_json.map(seller => seller['seller_name']))];
-    res.json(uniqueSellers);
+    const sellers = await Route.distinct('seller_name');
+    res.json(sellers);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -101,15 +91,19 @@ app.get('/api/sellers', (req, res) => {
 });
 
 // GET /api/sellers/:seller_name/riders
-app.get('/api/sellers/:seller_name/riders', (req, res) => {
+app.get('/api/sellers/:seller_name/riders', async (req, res) => {
   const { seller_name } = req.params;
   try {
-    const df_seller_json = xlsx.utils.sheet_to_json(df_seller);
-    const riders = df_seller_json.filter(seller => seller['seller_name'] === seller_name).map(seller => seller['Driver Name']);
-    const uniqueRiders = [...new Set(riders)];
-    const ridersWithCounts = uniqueRiders.map(riderCode => ({
-      riderCode,
-      productCount: df_seller_json.filter(seller => seller['seller_name'] === seller_name && seller['Driver Name'] === riderCode).reduce((sum, seller) => sum + seller['total_item_quantity'], 0)
+    const riders = await Route.find({ seller_name }).distinct('Driver Name'); // Ensure correct field name
+    const ridersWithCounts = await Promise.all(riders.map(async (riderCode) => {
+      const productCount = await Route.aggregate([
+        { $match: { seller_name, 'Driver Name': riderCode } }, // Ensure correct field name
+        { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+      ]);
+      return {
+        riderCode,
+        productCount: productCount[0] ? productCount[0].totalQuantity : 0
+      };
     }));
     res.json(ridersWithCounts);
   } catch (error) {
@@ -119,33 +113,55 @@ app.get('/api/sellers/:seller_name/riders', (req, res) => {
 });
 
 // GET /api/products
-app.get('/api/products', (req, res) => {
+
+// GET /api/products
+app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
+  console.log('Query parameters:', seller_name, rider_code); // Log query parameters
+
   try {
-    const df_seller_json = xlsx.utils.sheet_to_json(df_seller);
-    const df_products_json = xlsx.utils.sheet_to_json(df_products);
-    const filtered_df = df_seller_json.filter(seller => seller['seller_name'] === seller_name && seller['Driver Name'] === rider_code);
-    const merged_df = filtered_df.map(seller => {
-      const product = df_products_json.find(product => product['sku'] === seller['line_item_sku']);
-      return {
-        ...seller,
-        image1: product ? product['image1'] : null
-      };
+    console.log(`Fetching products for seller_name: ${seller_name}, rider_code: ${rider_code}`);
+
+    // Fetch filtered data based on seller_name and rider_code
+    const filteredData = await Route.find({ seller_name, Driver_Name: rider_code });
+    console.log('Filtered data:', filteredData); // Log filtered data
+
+    // Fetch all photos from the database
+    const photos = await Photo.find();
+    console.log('Photos fetched:', photos); // Log fetched photos
+
+    // Create a map of SKU to image URL
+    const photoMap = {};
+    photos.forEach(photo => {
+      photoMap[photo.sku] = photo.image_url;
     });
-    const orderCodeQuantities = merged_df.reduce((acc, seller) => {
-      acc[seller['FINAL']] = (acc[seller['FINAL']] || 0) + seller['total_item_quantity'];
+
+    // Merge filtered data with photo URLs
+    const mergedData = filteredData.map(data => ({
+      ...data._doc,
+      image1: photoMap[data.line_item_sku] || null
+    }));
+
+    // Calculate order code quantities
+    const orderCodeQuantities = mergedData.reduce((acc, data) => {
+      acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
-    const products = merged_df.map(seller => ({
-      FINAL: seller['FINAL'],
-      line_item_sku: seller['line_item_sku'],
-      line_item_name: seller['line_item_name'],
-      image1: seller['image1'],
-      total_item_quantity: seller['total_item_quantity']
+
+    // Prepare products response
+    const products = mergedData.map(data => ({
+      FINAL: data.FINAL,
+      line_item_sku: data.line_item_sku,
+      line_item_name: data.line_item_name,
+      image1: data.image1,
+      total_item_quantity: data.total_item_quantity
     }));
+
+    console.log('Products fetched:', products); // Log fetched products
+
     res.json({ orderCodeQuantities, products });
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching products:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
