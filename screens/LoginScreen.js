@@ -9,7 +9,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://13.233.47.216:5000/api/login', { username, password });
+      const response = await axios.post('http://13.233.47.216:5001/api/login', { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
         navigation.navigate('RiderCodes', { sellerName: username });
