@@ -13,7 +13,7 @@ const ProductDetailsScreen = ({ route }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/products`, {
+        const response = await axios.get(`http://13.233.47.216:5001/api/products`, {
           params: {
             seller_name: sellerName,
             rider_code: riderCode

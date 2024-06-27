@@ -11,7 +11,7 @@ const RiderCodesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/sellers/${sellerName}/riders`)
+    axios.get(`http://13.233.47.216:5001/api/sellers/${sellerName}/riders`)
       .then(response => setRidersWithCounts(response.data))
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
   }, [sellerName]);

@@ -14,7 +14,7 @@ const SellerTiles = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/login`, { username, password });
+      const response = await axios.post(`http://13.233.47.216:5001/api/login`, { username, password });
       if (response.data.success) {
         navigation.navigate('RiderCodes', { sellerName: username });
       } else {
