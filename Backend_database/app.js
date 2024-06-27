@@ -11,6 +11,8 @@ const Route = require('./models/route'); // Import the Route model
 app.use(express.json());
 app.use(cors()); // Enable CORS for all routes
 
+console.log("success")
+
 // MongoDB connection URI
 const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
 
@@ -116,13 +118,14 @@ app.get('/api/sellers/:seller_name/riders', async (req, res) => {
 app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
-  try {
     // Adjusted query to handle case sensitivity and exact match issues
-    const filteredData = await Route.find({
-      seller_name: { $regex: new RegExp(`${seller_name}`, 'i') }, // Case insensitive match
-      "Driver Name": { $regex: new RegExp(`${rider_code}`, 'i') }   // Case insensitive match
-    });
-
+    try {
+      // Adjusted query to handle exact matches using regex anchors
+      const filteredData = await Route.find({
+        seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') }, // Exact case insensitive match
+        "Driver Name": { $regex: new RegExp(`^${rider_code}$`, 'i') } // Exact case insensitive match
+      });
+    
     // Fetch all photos from the database
     const photos = await Photo.find();
 

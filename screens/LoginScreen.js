@@ -9,7 +9,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://172.31.34.16:5000/api/login', { username, password });
+      const response = await axios.post('http://13.233.47.216:5000/api/login', { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
         navigation.navigate('RiderCodes', { sellerName: username });
@@ -54,9 +54,9 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
           <Text style={[styles.buttonText, styles.registerButtonText]}>Register</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.forgotButton} onPress={() => navigation.navigate('ForgotPassword')}>
+        {/* <TouchableOpacity style={styles.forgotButton} onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.forgotButtonText}>Forgot Password?</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </LinearGradient>
   );
