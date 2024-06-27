@@ -2,20 +2,36 @@
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "env": {
+          "API_BASE_URL": "http://13.233.47.216:5001"
+        }
       }
     },
     "preview2": {
       "android": {
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "API_BASE_URL": "http://13.233.47.216:5001"
+        }
       }
     },
     "preview3": {
-      "developmentClient": true
+      "developmentClient": true,
+      "env": {
+        "API_BASE_URL": "http://13.233.47.216:5001"
+      }
     },
     "preview4": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "API_BASE_URL": "http://13.233.47.216:5001"
+      }
     },
-    "production": {}
+    "production": {
+      "env": {
+        "API_BASE_URL": "http://13.233.47.216:5001"
+      }
+    }
   }
 }
