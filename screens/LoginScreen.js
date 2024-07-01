@@ -10,21 +10,18 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`http://13.233.47.216:5001/api/login`, { username, password });
+      const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/login`, { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
         navigation.navigate('RiderCodes', { sellerName: username });
-      } else if (response.status === 401) {
-        Alert.alert('Login failed', 'Invalid credentials');
-      } else {
-        Alert.alert('Login failed', 'An error occurred. Please try again.');
       }
+
     } catch (error) {
       if (error.response && error.response.status === 401) {
         Alert.alert('Login failed', 'Invalid credentials');
       } else {
         console.error('Error during login:', error);
-        Alert.alert('Login failed', 'An error occurred. Please try again.');
+        Alert.alert('Login failed', 'User does not exist');
       }
     }
   };
@@ -39,7 +36,7 @@ const LoginScreen = ({ navigation }) => {
           placeholder="Username"
           placeholderTextColor="#888"
           value={username}
-          onChangeText={setUsername}
+          onChangeText={(text) => setUsername(text.toUpperCase())}
         />
         <TextInput
           style={styles.input}
@@ -53,7 +50,7 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
-          <Text style={[styles.buttonText, styles.registerButtonText]}>Register</Text>
+          <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
         </TouchableOpacity>
         {/* <TouchableOpacity style={styles.forgotButton} onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.forgotButtonText}>Forgot Password?</Text>

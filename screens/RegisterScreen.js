@@ -10,16 +10,19 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post(`http://13.233.47.216:5001/api/register`, { username, password });
+      const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/register`, { username, password });
       if (response.status === 201) {
         Alert.alert(`Registration successful ${username}, You can now login.`);
         navigation.navigate('Login'); // Navigate to the Login screen after successful registration
-      } else {
-        Alert.alert('Registration failed', 'Please try again later.');
       }
+
     } catch (error) {
-      console.error('Error during registration:', error);
-      Alert.alert('Registration failed', 'An error occurred. Please try again.');
+        if (error.response && error.response.status === 400) {
+        Alert.alert(`Username ${username} already registered`);
+      } else {
+        console.error('Error during login:', error);
+        Alert.alert('Registration failed', 'An error occurred. Please try again.');
+      }
     }
   };
 
@@ -33,7 +36,7 @@ const RegisterScreen = ({ navigation }) => {
           placeholder="Username"
           placeholderTextColor="#888"
           value={username}
-          onChangeText={setUsername}
+          onChangeText={(text) => setUsername(text.toUpperCase())}
         />
         <TextInput
           style={styles.input}
@@ -47,7 +50,7 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={() => navigation.navigate('Login')}>
-          <Text style={[styles.buttonText, styles.loginButtonText]}>Login</Text>
+          <Text style={[styles.buttonText, styles.loginButtonText]}>Already registered? Login</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>
