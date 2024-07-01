@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@env';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Image, ActivityIndicator, ScrollView, Modal, TouchableWithoutFeedback } from 'react-native';
 import axios from 'axios';
 import Swiper from 'react-native-swiper';
 
@@ -9,6 +9,8 @@ const ProductDetailsScreen = ({ route }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -30,6 +32,11 @@ const ProductDetailsScreen = ({ route }) => {
 
     fetchProducts();
   }, [sellerName, riderCode]);
+
+  const handleImagePress = (product) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
 
   if (loading) {
     return (
@@ -61,18 +68,40 @@ const ProductDetailsScreen = ({ route }) => {
               <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
             </View>
             {groupedProducts[finalCode].map((product, index) => (
-              <View key={index} style={styles.productContainer}>
-                <Image source={{ uri: product.image1 }} style={styles.image} />
-                <View style={styles.textContainer}>
-                  <Text style={styles.text}>SKU: {product.line_item_sku}</Text>
-                  <Text style={styles.text}>Name: {product.line_item_name}</Text>
-                  <Text style={styles.text}>Quantity: {product.total_item_quantity}</Text>
+              <TouchableWithoutFeedback key={index} onPress={() => handleImagePress(product)}>
+                <View style={styles.productContainer}>
+                  <Image source={{ uri: product.image1 }} style={styles.image} />
+                  <View style={styles.textContainer}>
+                    <Text style={styles.text}>SKU: {product.line_item_sku}</Text>
+                    <Text style={styles.text}>Name: {product.line_item_name}</Text>
+                    <Text style={styles.text}>Quantity: {product.total_item_quantity}</Text>
+                  </View>
                 </View>
-              </View>
+              </TouchableWithoutFeedback>
             ))}
           </ScrollView>
         ))}
       </Swiper>
+
+      {selectedProduct && (
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Image source={{ uri: selectedProduct.image1 }} style={styles.fullScreenImage} />
+                <Text style={styles.modalText}>SKU: {selectedProduct.line_item_sku}</Text>
+                <Text style={styles.modalText}>Name: {selectedProduct.line_item_name}</Text>
+                <Text style={styles.modalText}>Quantity: {selectedProduct.total_item_quantity}</Text>
+                {/* Add other product details here */}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -133,6 +162,28 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     marginBottom: 5,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    margin: 20,
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 10,
   },
 });
 

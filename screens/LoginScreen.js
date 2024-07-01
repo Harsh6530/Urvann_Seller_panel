@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@env';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
@@ -15,7 +15,6 @@ const LoginScreen = ({ navigation }) => {
         Alert.alert('Login successful', `Welcome, ${username}!`);
         navigation.navigate('RiderCodes', { sellerName: username });
       }
-
     } catch (error) {
       if (error.response && error.response.status === 401) {
         Alert.alert('Login failed', 'Invalid credentials');
@@ -27,61 +26,58 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#fff', '#fff']} style={styles.container}>
-      <Image source={require('../assets/urvann.png')} style={styles.logo} />
-      <View style={styles.innerContainer}>
-        <Text style={styles.title}>Seller login</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="#888"
-          value={username}
-          onChangeText={(text) => setUsername(text.toUpperCase())}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#888"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
-          <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
-        </TouchableOpacity>
-        {/* <TouchableOpacity style={styles.forgotButton} onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotButtonText}>Forgot Password?</Text>
-        </TouchableOpacity> */}
-      </View>
-    </LinearGradient>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.innerContainer}>
+          <Image source={require('../assets/urvann.png')} style={styles.logo} />
+          <Text style={styles.title}>Seller login</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#888"
+            value={username}
+            onChangeText={(text) => setUsername(text.toUpperCase())}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
+              <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+  },
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'top',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   logo: {
-    marginTop: 100,
+    marginTop: 80,
     width: 220,
     height: 40,
     marginBottom: 50,
-  },
-  innerContainer: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    elevation: 2,
-    alignItems: 'center',
   },
   title: {
     fontSize: 28,
@@ -101,6 +97,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     width: '100%',
+  },
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'center',
   },
   button: {
     backgroundColor: '#287238',
