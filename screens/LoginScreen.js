@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@env';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
@@ -10,7 +10,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/login`, { username, password });
+      const response = await axios.post(`${API_BASE_URL}/api/login`, { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
         navigation.navigate('RiderCodes', { sellerName: username });
@@ -26,40 +26,36 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.innerContainer}>
-          <Image source={require('../assets/urvann.png')} style={styles.logo} />
-          <Text style={styles.title}>Seller login</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            placeholderTextColor="#888"
-            value={username}
-            onChangeText={(text) => setUsername(text.toUpperCase())}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
-              <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    <LinearGradient colors={['#fff', '#fff']} style={styles.container}>
+      <Image source={require('../assets/urvann.png')} style={styles.logo} />
+      <View style={styles.innerContainer}>
+        <Text style={styles.title}>Seller login</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          placeholderTextColor="#888"
+          value={username}
+          onChangeText={(text) => setUsername(text.toUpperCase())}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
+          <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
+        </TouchableOpacity>
+        {/* <TouchableOpacity style={styles.forgotButton} onPress={() => navigation.navigate('ForgotPassword')}>
+          <Text style={styles.forgotButtonText}>Forgot Password?</Text>
+        </TouchableOpacity> */}
+      </View>
+    </LinearGradient>
   );
 };
 
@@ -74,6 +70,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
+    marginLeft: 85,
     marginTop: 80,
     width: 220,
     height: 40,
@@ -97,10 +94,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     width: '100%',
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
   },
   button: {
     backgroundColor: '#287238',
