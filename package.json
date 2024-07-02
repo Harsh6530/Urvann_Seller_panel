@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.1",
+    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-community/checkbox": "^0.5.17",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
     "@react-navigation/stack": "^6.3.29",
@@ -18,10 +20,12 @@
     "cors": "^2.8.5",
     "expo": "~51.0.17",
     "expo-constants": "~16.0.2",
+    "expo-dev-client": "~4.0.19",
     "expo-linear-gradient": "~13.0.2",
     "expo-linking": "~6.3.1",
     "expo-router": "~3.5.17",
     "expo-status-bar": "~1.12.1",
+    "expo-updates": "~0.25.18",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.3",
@@ -42,8 +46,7 @@
     "react-native-web": "~0.19.10",
     "rn-fetch-blob": "^0.12.0",
     "xlsx": "^0.18.5",
-    "expo-updates": "~0.25.18",
-    "expo-dev-client": "~4.0.19"
+    "expo-checkbox": "~3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

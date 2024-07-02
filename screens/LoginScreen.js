@@ -1,17 +1,34 @@
 import { API_BASE_URL } from '@env';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Checkbox from 'expo-checkbox';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        // Validate token with server if necessary
+        navigation.navigate('RiderCodes');
+      }
+    };
+    checkToken();
+  }, []);
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/login`, { username, password });
+      const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/login`, { username, password });
       if (response.status === 200 && response.data.token) {
+        if (keepLoggedIn) {
+          await AsyncStorage.setItem('userToken', response.data.token);
+        }
         Alert.alert('Login successful', `Welcome, ${username}!`);
         navigation.navigate('RiderCodes', { sellerName: username });
       }
@@ -45,6 +62,13 @@ const LoginScreen = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry
         />
+        <View style={styles.checkboxContainer}>
+          <Checkbox
+            value={keepLoggedIn}
+            onValueChange={setKeepLoggedIn}
+          />
+          <Text style={styles.checkboxLabel}>Keep me logged in</Text>
+        </View>
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
@@ -94,6 +118,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     width: '100%',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#333',
   },
   button: {
     backgroundColor: '#287238',
