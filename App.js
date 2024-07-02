@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import RiderCodesScreen from './screens/RiderCodesScreen';
+import MainTabNavigator from './screens/MainTabNavigator';
 import ProductDetailsScreen from './screens/ProductDetailsScreen';
-import LoginScreen from './screens/LoginScreen'; // Import your LoginScreen component
+import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
-import RegisterScreen from './screens/RegisterScreen'; // Import your RegisterScreen component
 
 const Stack = createStackNavigator();
 
@@ -14,7 +14,7 @@ const App = () => {
     headerStyle: {
       backgroundColor: '#287238',
     },
-    headerTintColor: '#fff', // Title color
+    headerTintColor: '#fff',
     headerTitleStyle: {
       fontWeight: 'bold',
     },
@@ -26,7 +26,7 @@ const App = () => {
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Login' }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Register' }} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="RiderCodes" component={RiderCodesScreen} options={{ title: 'Rider Codes' }} />
+        <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} options={{ title: 'Product Details' }} />
       </Stack.Navigator>
     </NavigationContainer>

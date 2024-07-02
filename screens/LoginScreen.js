@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '@env';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,17 +10,6 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
 
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem('userToken');
-      if (token) {
-        // Validate token with server if necessary
-        navigation.navigate('RiderCodes');
-      }
-    };
-    checkToken();
-  }, []);
-
   const handleLogin = async () => {
     try {
       const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/login`, { username, password });
@@ -30,7 +18,10 @@ const LoginScreen = ({ navigation }) => {
           await AsyncStorage.setItem('userToken', response.data.token);
         }
         Alert.alert('Login successful', `Welcome, ${username}!`);
-        navigation.navigate('RiderCodes', { sellerName: username });
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs', params: { sellerName: username } }],
+        });
       }
     } catch (error) {
       if (error.response && error.response.status === 401) {
@@ -75,9 +66,6 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
           <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity style={styles.forgotButton} onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotButtonText}>Forgot Password?</Text>
-        </TouchableOpacity> */}
       </View>
     </LinearGradient>
   );
@@ -89,7 +77,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flex: 1,
-    justifyContent: 'top',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
@@ -150,13 +138,6 @@ const styles = StyleSheet.create({
   },
   registerButtonText: {
     color: '#4CAF50',
-  },
-  forgotButton: {
-    marginTop: 10,
-  },
-  forgotButtonText: {
-    color: '#4CAF50',
-    fontSize: 16,
   },
 });
 

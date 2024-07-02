@@ -1,21 +1,21 @@
-  {
-    "cli": {
-      "version": ">= 5.6.0"
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      }
     },
-    "build": {
-      "development": {
-          "distribution": "internal",
-          "developmentClient":true,
-          "android": {
-              "gradleCommand": ":app:assembleDebug"
-          },
-          "ios": {
-              "buildConfiguration": "Debug"
-          }
-      },
-      "preview": {
-          
-      },
-      "production": {}
-    }
-  } 
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview3": {
+      "developmentClient": true
+    },
+    "preview4": {
+      "distribution": "internal"
+    },
+    "production": {}
+  }
+}
