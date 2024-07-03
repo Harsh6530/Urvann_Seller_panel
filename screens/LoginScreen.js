@@ -9,6 +9,11 @@ const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const filterInput = (text) => {
+    // Example filtering logic, you can customize as needed
+    return text.trim(); // Trim leading and trailing whitespace
+  };
+
   const handleLogin = async () => {
     try {
       const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/login`, { username, password });
