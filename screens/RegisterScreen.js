@@ -1,6 +1,5 @@
-import { API_BASE_URL } from '@env';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
@@ -30,33 +29,38 @@ const RegisterScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.innerContainer}>
-          <Image source={require('../assets/urvann.png')} style={styles.logo} />
-          <Text style={styles.title}>Register</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            placeholderTextColor="#888"
-            value={username}
-            onChangeText={(text) => setUsername(text.toUpperCase())}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#888"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Register</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={() => navigation.navigate('Login')}>
-            <Text style={[styles.buttonText, styles.loginButtonText]}>Already registered? Login</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableWithoutFeedback>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.innerContainer}>
+            <Image source={require('../assets/urvann.png')} style={styles.logo} />
+            <Text style={styles.title}>Register</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              placeholderTextColor="#888"
+              value={username}
+              onChangeText={(text) => setUsername(text.toUpperCase())}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#888"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            <TouchableOpacity style={styles.button} onPress={handleRegister}>
+              <Text style={styles.buttonText}>Register</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={() => navigation.navigate('Login')}>
+              <Text style={[styles.buttonText, styles.loginButtonText]}>Already registered? Login</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -65,15 +69,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  innerContainer: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-    justifyContent: 'top',
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
+  innerContainer: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
   logo: {
-    marginTop: 80,
+    marginTop: 10,
     width: 220,
     height: 40,
     marginBottom: 50,
@@ -87,6 +95,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
+    width: '100%',
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 25,
@@ -95,7 +104,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     fontSize: 16,
     color: '#333',
-    width: '100%',
   },
   button: {
     backgroundColor: '#287238',
