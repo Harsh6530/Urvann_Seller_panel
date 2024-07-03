@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   headerCell: {
-    width: 110, // Set a fixed width for all header cells
+    width: 115, // Set a fixed width for all header cells
     padding: 10,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   cell: {
-    width: 110, // Set a fixed width for all cells
+    width: 115, // Set a fixed width for all cells
     padding: 10,
     textAlign: 'center',
     borderRightWidth: 1,
