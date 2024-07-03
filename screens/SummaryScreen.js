@@ -43,30 +43,40 @@ const SummaryScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Summary for {sellerName}</Text>
-      <ScrollView horizontal>
-        <View>
-          <View style={styles.headerRow}>
-            <Text style={styles.headerCell}>Name</Text>
-            <Text style={styles.headerCell}>Payable</Text>
-            <Text style={styles.headerCell}>Refunds</Text>
-            <Text style={styles.headerCell}>Other Additions</Text>
-            <Text style={styles.headerCell}>B2B Sales</Text>
-            <Text style={styles.headerCell}>Stickers</Text>
-            <Text style={styles.headerCell}>Penalty</Text>
-            <Text style={styles.headerCell}>Total Paid</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.cell}>{summary.Name}</Text>
-            <Text style={styles.cell}>{summary.Payable}</Text>
-            <Text style={styles.cell}>{summary.Refunds}</Text>
-            <Text style={styles.cell}>{summary['Other additions']}</Text>
-            <Text style={styles.cell}>{summary['B2B sales']}</Text>
-            <Text style={styles.cell}>{summary.Stickers}</Text>
-            <Text style={styles.cell}>{summary.Penalty}</Text>
-            <Text style={styles.cell}>{summary['Total Paid']}</Text>
-          </View>
+      <View style={styles.summaryContainer}>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Name</Text>
+          <Text style={styles.cell}>{summary.Name}</Text>
         </View>
-      </ScrollView>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Payable</Text>
+          <Text style={styles.cell}>{summary.Payable}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Refunds</Text>
+          <Text style={styles.cell}>{summary.Refunds}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Other Additions</Text>
+          <Text style={styles.cell}>{summary['Other additions']}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>B2B Sales</Text>
+          <Text style={styles.cell}>{summary['B2B sales']}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Stickers</Text>
+          <Text style={styles.cell}>{summary.Stickers}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Penalty</Text>
+          <Text style={styles.cell}>{summary.Penalty}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>Total Paid</Text>
+          <Text style={styles.cell}>{summary['Total Paid']}</Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -82,31 +92,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  headerRow: {
-    flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
+  summaryContainer: {
+    borderWidth: 1,
     borderColor: '#ccc',
-  },
-  headerCell: {
-    flex: 1,
-    padding: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    borderRightWidth: 1,
-    borderColor: '#ccc',
+    marginBottom: 20,
   },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderColor: '#ccc',
   },
+  headerCell: {
+    width: 160, // Set a fixed width for header cells
+    padding: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRightWidth: 1,
+    borderTopWidth: 1,
+    borderColor: '#ccc',
+  },
   cell: {
-    flex: 1,
+    width: 150, // Set a fixed width for cells
     padding: 10,
     textAlign: 'center',
-    borderRightWidth: 1,
     borderColor: '#ccc',
   },
 });

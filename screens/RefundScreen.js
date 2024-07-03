@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   headerCell: {
-    flex: 1,
+    width: 100, // Set a fixed width for all header cells
     padding: 10,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   cell: {
-    flex: 1,
+    width: 100, // Set a fixed width for all cells
     padding: 10,
     textAlign: 'center',
     borderRightWidth: 1,

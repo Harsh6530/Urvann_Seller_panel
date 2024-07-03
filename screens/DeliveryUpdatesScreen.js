@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView } from 'react-native';
 import axios from 'axios';
 
 const DeliveryUpdatesScreen = ({ route }) => {
@@ -9,23 +9,28 @@ const DeliveryUpdatesScreen = ({ route }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log(`Fetching delivery updates for seller: ${sellerName}`); // Log sellerName
     const fetchDeliveryUpdates = async () => {
       try {
         const response = await axios.get(`http://192.168.0.51:5001/api/data/${sellerName}`);
-        console.log('API response:', response.data); // Log API response
         setDeliveryUpdates(response.data.deliveryUpdates);
-        setLoading(false); // Ensure loading state is updated
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching delivery updates:', error);
         setError(error);
-        setLoading(false); // Ensure loading state is updated
+        setLoading(false);
       }
     };
-  
+
     fetchDeliveryUpdates();
   }, [sellerName]);
-  
+
+  const renderItem = ({ item }) => (
+    <View style={styles.row}>
+      <Text style={styles.cell}>{new Date(item.Date).toLocaleDateString()}</Text>
+      <Text style={styles.cell}>{item.Delivered}</Text>
+      <Text style={styles.cell}>{item.Penalty}</Text>
+    </View>
+  );
 
   if (loading) {
     return (
@@ -35,50 +40,72 @@ const DeliveryUpdatesScreen = ({ route }) => {
     );
   }
 
-  if (error) {
+  if (error || deliveryUpdates.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>Error loading delivery updates.</Text>
+        <Text>Error loading delivery updates or no data available.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Delivery Updates for {sellerName}</Text>
-      {deliveryUpdates.length === 0 ? (
-        <Text>No delivery updates available.</Text>
-      ) : (
-        deliveryUpdates.map((update, index) => (
-          <View key={index} style={styles.updateContainer}>
-            <Text>Date: {new Date(update.Date).toLocaleDateString()}</Text>
-            <Text>Delivered: {update.Delivered}</Text>
-            <Text>Penalty: {update.Penalty}</Text>
+    <ScrollView horizontal>
+      <View style={styles.container}>
+        <Text style={styles.title}>Delivery Updates for {sellerName}</Text>
+        <View>
+          <View style={styles.headerRow}>
+            <Text style={styles.headerCell}>Date</Text>
+            <Text style={styles.headerCell}>Delivered</Text>
+            <Text style={styles.headerCell}>Penalty</Text>
           </View>
-        ))
-      )}
-    </View>
+          <FlatList
+            data={deliveryUpdates}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    padding: 20,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  updateContainer: {
-    borderWidth: 1,
+  headerRow: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: '#ccc',
+  },
+  headerCell: {
+    width: 110, // Set a fixed width for all header cells
     padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: '#ccc',
+  },
+  row: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  cell: {
+    width: 110, // Set a fixed width for all cells
+    padding: 10,
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: '#ccc',
   },
 });
 

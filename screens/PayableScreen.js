@@ -30,8 +30,6 @@ const PayableScreen = ({ route }) => {
       <Text style={styles.cell}>{item.line_item_name}</Text>
       <Text style={styles.cell}>{item.line_item_price}</Text>
       <Text style={styles.cell}>{item.line_item_quantity}</Text>
-      <Text style={styles.cell}>{item.Store}</Text>
-      <Text style={styles.cell}>{item['Urvann revenue']}</Text>
       <Text style={styles.cell}>{item['Payable to vendor']}</Text>
       <Text style={styles.cell}>{item.SKU}</Text>
     </View>
@@ -63,8 +61,6 @@ const PayableScreen = ({ route }) => {
             <Text style={styles.headerCell}>Line Item Name</Text>
             <Text style={styles.headerCell}>Line Item Price</Text>
             <Text style={styles.headerCell}>Line Item Quantity</Text>
-            <Text style={styles.headerCell}>Store</Text>
-            <Text style={styles.headerCell}>Urvann Revenue</Text>
             <Text style={styles.headerCell}>Payable to Vendor</Text>
             <Text style={styles.headerCell}>SKU</Text>
           </View>
@@ -98,7 +94,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   headerCell: {
-    flex: 1,
+    width: 120, // Set a fixed width for all header cells
     padding: 10,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -111,7 +107,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   cell: {
-    flex: 1,
+    width: 120, // Set a fixed width for all cells
     padding: 10,
     textAlign: 'center',
     borderRightWidth: 1,
