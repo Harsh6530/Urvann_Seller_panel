@@ -11,7 +11,7 @@ const SummaryScreen = ({ route }) => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.51:5001/api/summary/${sellerName}`);
+        const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/summary/${sellerName}`);
         setSummary(response.data);
         setLoading(false);
       } catch (error) {
