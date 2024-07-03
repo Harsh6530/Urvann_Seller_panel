@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const deliveryUpdatesSchema = new mongoose.Schema({
-  Date: String,
+  Date: Date,
   'Seller name': String,
   Delivered: Number,
   Penalty: Number,

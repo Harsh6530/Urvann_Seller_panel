@@ -1,64 +1,34 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import SummaryScreen from './SummaryScreen';
+import RefundScreen from './RefundScreen';
+import PayableScreen from './PayableScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
-const PayoutScreen = ({ navigation }) => {
-  const handleSummaryPress = () => {
-    // Handle Summary button press
-  };
+const Tab = createMaterialTopTabNavigator();
 
-  const handleRefundPress = () => {
-    // Handle Refund button press
-  };
+const PayoutTabs = ({ sellerName }) => (
+  <Tab.Navigator
+    swipeEnabled={false} // Disable swiping between tabs
+    screenOptions={{
+      swipeEnabled: false, // Move swipeEnabled to screenOptions as well
+    }}
+  >
+    <Tab.Screen name="Summary" component={SummaryScreen} initialParams={{ sellerName }} />
+    <Tab.Screen name="Refund" component={RefundScreen} initialParams={{ sellerName }} />
+    <Tab.Screen name="Payable" component={PayableScreen} initialParams={{ sellerName }} />
+  </Tab.Navigator>
+);
 
-  const handlePayablePress = () => {
-    // Handle Payable button press
-  };
+const PayoutScreen = ({ route }) => {
+  const { sellerName } = route.params;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={handleSummaryPress}>
-        <Text style={styles.buttonText}>Summary</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleRefundPress}>
-        <Text style={styles.buttonText}>Refund</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handlePayablePress}>
-        <Text style={styles.buttonText}>Payable</Text>
-      </TouchableOpacity>
-    </View>
+    <NavigationContainer independent={true}>
+      <PayoutTabs sellerName={sellerName} />
+    </NavigationContainer>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'top',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#f9f9f9',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderRadius: 5,
-    marginBottom: 20,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    width: '100%', // Ensure buttons take full width
-    alignItems: 'left', // Center text horizontally
-  },
-  buttonText: {
-    color: '#333',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default PayoutScreen;

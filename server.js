@@ -7,6 +7,10 @@ const app = express();
 const Photo = require('./models/photo'); // Import the Photo model
 const User = require('./models/userDetails'); // Use the existing User model
 const Route = require('./models/route'); // Import the Route model
+const DeliveryUpdate = require('./models/deliveryUpdate');
+const Summary = require('./models/Summary');
+const Payable = require('./models/Payable');
+const Refund = require('./models/Refund');
 
 app.use(express.json());
 app.use(cors()); // Enable CORS for all routes
@@ -160,6 +164,72 @@ app.get('/api/products', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+app.get('/api/data/:sellerName', async (req, res) => {
+  try {
+    const sellerName = req.params.sellerName;
+
+    console.log(`Fetching data for seller: ${sellerName}`); // Debugging log
+
+    // Fetch only the Date, Delivered, and Penalty fields
+    const deliveryUpdates = await DeliveryUpdate.find({ 'Seller name': sellerName }, 'Date Delivered Penalty');
+
+    console.log('Fetched data:', deliveryUpdates); // Debugging log
+
+    res.json({ deliveryUpdates });
+  } catch (err) {
+    console.error('Error fetching data:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Endpoint for Summary
+// Endpoint for Summary
+app.get('/api/summary/:sellerName', async (req, res) => {
+  try {
+    const sellerName = req.params.sellerName;
+    console.log(`Fetching summary for seller: ${sellerName}`);
+
+    const summary = await Summary.findOne({ Name: sellerName });
+
+    if (!summary) {
+      console.log('Summary not found');
+      return res.status(404).json({ message: 'Summary not found' });
+    }
+
+    res.json(summary);
+  } catch (err) {
+    console.error('Error fetching summary:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Endpoint for Refund
+app.get('/api/refund/:sellerName', async (req, res) => {
+  try {
+    const sellerName = req.params.sellerName;
+    const refunds = await Refund.find({ Seller: sellerName });
+
+    res.json(refunds);
+  } catch (err) {
+    console.error('Error fetching refunds:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Endpoint for Payable
+app.get('/api/payable/:sellerName', async (req, res) => {
+  try {
+    const sellerName = req.params.sellerName;
+    const payables = await Payable.find({ seller_name: sellerName });
+
+    res.json(payables);
+  } catch (err) {
+    console.error('Error fetching payables:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

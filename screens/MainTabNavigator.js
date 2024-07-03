@@ -8,7 +8,7 @@ import RiderCodesScreen from './RiderCodesScreen';
 const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = ({ route }) => {
-  const { sellerName } = route.params;
+  const sellerName = route?.params?.sellerName ?? 'defaultSellerName';
 
   return (
     <Tab.Navigator
