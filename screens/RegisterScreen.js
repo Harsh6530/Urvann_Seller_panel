@@ -42,14 +42,14 @@ const RegisterScreen = ({ navigation }) => {
               placeholder="Username"
               placeholderTextColor="#888"
               value={username}
-              onChangeText={(text) => setUsername(text.toUpperCase())}
+              onChangeText={(text) => setUsername(filterInput(text).toUpperCase())}
             />
             <TextInput
               style={styles.input}
               placeholder="Password"
               placeholderTextColor="#888"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => setPassword(filterInput(text))}
               secureTextEntry
             />
             <TouchableOpacity style={styles.button} onPress={handleRegister}>
