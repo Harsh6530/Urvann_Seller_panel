@@ -11,7 +11,7 @@ const DeliveryUpdatesScreen = ({ route }) => {
   useEffect(() => {
     const fetchDeliveryUpdates = async () => {
       try {
-        const response = await axios.get(`http://192.168.0.51:5001/api/data/${sellerName}`);
+        const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/data/${sellerName}`);
         setDeliveryUpdates(response.data.deliveryUpdates);
         setLoading(false);
       } catch (error) {
