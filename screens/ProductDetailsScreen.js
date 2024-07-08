@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '@env';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Image, ActivityIndicator, ScrollView, Modal, TouchableWithoutFeedback } from 'react-native';
 import axios from 'axios';
@@ -188,3 +187,4 @@ const styles = StyleSheet.create({
 });
 
 export default ProductDetailsScreen;
+
