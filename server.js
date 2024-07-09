@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
@@ -37,13 +36,10 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // // Hash the password
-    // const hashedPassword = await bcrypt.hash(password, 10);
-
     // Create new user
     user = new User({
       username,
-      password,
+      password, // Store the password as it is
     });
 
     // Save user to database
@@ -68,8 +64,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Check if password matches
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if (password !== user.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -117,7 +112,6 @@ app.get('/api/sellers/:seller_name/riders', async (req, res) => {
 });
 
 // GET /api/sellers/:seller_name/all
-// GET /api/sellers/:seller_name/all
 app.get('/api/sellers/:seller_name/all', async (req, res) => {
   const { seller_name } = req.params;
   try {
@@ -136,9 +130,6 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
   }
 });
 
-
-
-// GET /api/products
 // GET /api/products
 app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
@@ -207,7 +198,6 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-
 app.get('/api/data/:sellerName', async (req, res) => {
   try {
     const sellerName = req.params.sellerName;
@@ -226,7 +216,6 @@ app.get('/api/data/:sellerName', async (req, res) => {
   }
 });
 
-// Endpoint for Summary
 // Endpoint for Summary
 app.get('/api/summary/:sellerName', async (req, res) => {
   try {
@@ -272,7 +261,6 @@ app.get('/api/payable/:sellerName', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
