@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   fullScreenImage: {
+    marginTop:10,
     width: '100%',
     height: 300,
     resizeMode: 'contain',
