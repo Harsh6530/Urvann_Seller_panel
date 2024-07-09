@@ -22,9 +22,6 @@ const ProductDetailsScreen = ({ route }) => {
           }
         });
 
-        // Log response data for debugging
-        console.log('API Response:', response.data);
-
         setProducts(response.data.products);
         setOrderCodeQuantities(response.data.orderCodeQuantities);
       } catch (error) {
@@ -78,7 +75,7 @@ const ProductDetailsScreen = ({ route }) => {
       {riderCode === 'all' ? (
         <>
           <View style={styles.headerContainer}>
-            <Text style={styles.header}>Order Code: Combined List</Text>
+            <Text style={styles.header}>Combined List</Text>
           </View>
           <FlatList
             data={products}

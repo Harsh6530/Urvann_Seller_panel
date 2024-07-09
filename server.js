@@ -134,9 +134,6 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
 app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
-  // Log received parameters for debugging
-  console.log('Received query params:', { seller_name, rider_code });
-
   try {
     // Adjusted query to handle case sensitivity and exact match issues
     let query = {
@@ -190,12 +187,8 @@ app.get('/api/data/:sellerName', async (req, res) => {
   try {
     const sellerName = req.params.sellerName;
 
-    console.log(`Fetching data for seller: ${sellerName}`); // Debugging log
-
     // Fetch only the Date, Delivered, and Penalty fields
     const deliveryUpdates = await DeliveryUpdate.find({ 'Seller name': sellerName }, 'Date Delivered Penalty');
-
-    console.log('Fetched data:', deliveryUpdates); // Debugging log
 
     res.json({ deliveryUpdates });
   } catch (err) {
