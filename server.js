@@ -1,5 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
 const Photo = require('./models/photo'); // Import the Photo model
@@ -21,6 +23,9 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error(err));
 
+// Hardcoded JWT secret key (use this only for development/testing)
+const JWT_SECRET = 'your_secret_key'; // Replace 'your_secret_key' with a strong secret key
+
 // Register route
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
@@ -32,10 +37,13 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // // Hash the password
+    // const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create new user
     user = new User({
       username,
-      password, // Store the password as plain text (not recommended)
+      password,
     });
 
     // Save user to database
@@ -60,11 +68,15 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Check if password matches
-    if (user.password !== password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    res.status(200).json({ message: 'Login successful' });
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(200).json({ token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -104,20 +116,59 @@ app.get('/api/sellers/:seller_name/riders', async (req, res) => {
   }
 });
 
+// GET /api/sellers/:seller_name/all
+// GET /api/sellers/:seller_name/all
+app.get('/api/sellers/:seller_name/all', async (req, res) => {
+  const { seller_name } = req.params;
+  try {
+    const products = await Route.find({ seller_name });
+    console.log(`Found ${products.length} products for seller ${seller_name}`); // Debug log
+    const productCount = await Route.aggregate([
+      { $match: { seller_name } },
+      { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+    ]);
+    const totalProductCount = productCount[0] ? productCount[0].totalQuantity : 0;
+    console.log(`Total product count for seller ${seller_name}: ${totalProductCount}`); // Debug log
+    res.json({ totalProductCount, products });
+  } catch (error) {
+    console.error(`Error fetching all products for ${seller_name}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+// GET /api/products
 // GET /api/products
 app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
+  // Log received parameters for debugging
+  console.log('Received query params:', { seller_name, rider_code });
+
+  try {
     // Adjusted query to handle case sensitivity and exact match issues
-    try {
-      // Adjusted query to handle exact matches using regex anchors
-      const filteredData = await Route.find({
-        seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') }, // Exact case insensitive match
-        "Driver Name": { $regex: new RegExp(`^${rider_code}$`, 'i') } // Exact case insensitive match
-      });
-    
+    let query = {
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } // Exact case insensitive match
+    };
+
+    if (rider_code !== 'all') {
+      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') }; // Exact case insensitive match
+    }
+
+    // Log the constructed query for debugging
+    console.log('Constructed MongoDB query:', query);
+
+    const filteredData = await Route.find(query);
+
+    // Log the filtered data for debugging
+    console.log('Filtered data:', filteredData);
+
     // Fetch all photos from the database
     const photos = await Photo.find();
+
+    // Log the photos data for debugging
+    console.log('Photos data:', photos);
 
     // Create a map of SKU to image URL
     const photoMap = {};
@@ -146,12 +197,16 @@ app.get('/api/products', async (req, res) => {
       total_item_quantity: data.total_item_quantity
     }));
 
+    // Log the response data for debugging
+    console.log('Response data:', { orderCodeQuantities, products });
+
     res.json({ orderCodeQuantities, products });
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.get('/api/data/:sellerName', async (req, res) => {
   try {
@@ -171,6 +226,7 @@ app.get('/api/data/:sellerName', async (req, res) => {
   }
 });
 
+// Endpoint for Summary
 // Endpoint for Summary
 app.get('/api/summary/:sellerName', async (req, res) => {
   try {
