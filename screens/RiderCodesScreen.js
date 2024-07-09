@@ -1,6 +1,5 @@
-import { API_BASE_URL } from '@env';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -8,16 +7,32 @@ const RiderCodesScreen = () => {
   const { params } = useRoute();
   const { sellerName } = params;
   const [ridersWithCounts, setRidersWithCounts] = useState([]);
+  const [combinedProductCount, setCombinedProductCount] = useState(0);
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/sellers/${sellerName}/riders`)
-      .then(response => setRidersWithCounts(response.data))
+    axios.get(`http://192.168.1.5:5001/api/sellers/${sellerName}/riders`)
+      .then(response => {
+        console.log(`Fetched rider codes for ${sellerName}:`, response.data);
+        setRidersWithCounts(response.data);
+      })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
+    
+    axios.get(`http://192.168.1.5:5001/api/sellers/${sellerName}/all`)
+      .then(response => {
+        console.log(`Fetched combined product count for ${sellerName}:`, response.data);
+        setCombinedProductCount(response.data.totalProductCount);
+      })
+      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
   }, [sellerName]);
-
+  
+  
   const handleRiderPress = (riderCode) => {
     navigation.navigate('ProductDetails', { sellerName, riderCode });
+  };
+
+  const handleCombineListPress = () => {
+    navigation.navigate('ProductDetails', { sellerName, riderCode: 'all' });
   };
 
   return (
@@ -34,6 +49,16 @@ const RiderCodesScreen = () => {
               </Text>
               <Text style={styles.text}>
                 {item.productCount} {item.productCount === 1 ? 'item' : 'items'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        ListHeaderComponent={() => (
+          <TouchableOpacity onPress={handleCombineListPress}>
+            <View style={styles.combineListTile}>
+              <Text style={styles.productCount}>Combine List</Text>
+              <Text style={styles.text}>
+                {combinedProductCount} {combinedProductCount === 1 ? 'item' : 'items'}
               </Text>
             </View>
           </TouchableOpacity>
@@ -63,6 +88,17 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: '#f9f9f9',
     borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  combineListTile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    marginVertical: 10,
+    backgroundColor: '#e0e0e0',
+    borderColor: '#aaa',
     borderWidth: 1,
     borderRadius: 5,
   },
