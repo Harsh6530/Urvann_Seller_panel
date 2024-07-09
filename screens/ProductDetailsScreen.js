@@ -47,6 +47,20 @@ const ProductDetailsScreen = ({ route }) => {
     );
   }
 
+  // Function to aggregate products by SKU for the combined list
+  const aggregateProductsBySKU = (products) => {
+    const productMap = {};
+    products.forEach(product => {
+      const sku = product.line_item_sku;
+      if (productMap[sku]) {
+        productMap[sku].total_item_quantity += product.total_item_quantity;
+      } else {
+        productMap[sku] = { ...product };
+      }
+    });
+    return Object.values(productMap);
+  };
+
   const groupedProducts = {};
   products.forEach(product => {
     if (!groupedProducts[product['FINAL']]) {
@@ -78,7 +92,7 @@ const ProductDetailsScreen = ({ route }) => {
             <Text style={styles.header}>Combined List</Text>
           </View>
           <FlatList
-            data={products}
+            data={aggregateProductsBySKU(products)}
             renderItem={renderProduct}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.scrollViewContainer}
@@ -201,7 +215,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   fullScreenImage: {
-    marginTop:10,
+    marginTop: 10,
     width: '100%',
     height: 300,
     resizeMode: 'contain',
