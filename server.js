@@ -116,13 +116,13 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
   const { seller_name } = req.params;
   try {
     const products = await Route.find({ seller_name });
-    console.log(`Found ${products.length} products for seller ${seller_name}`); // Debug log
+  
     const productCount = await Route.aggregate([
       { $match: { seller_name } },
       { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
     ]);
     const totalProductCount = productCount[0] ? productCount[0].totalQuantity : 0;
-    console.log(`Total product count for seller ${seller_name}: ${totalProductCount}`); // Debug log
+ 
     res.json({ totalProductCount, products });
   } catch (error) {
     console.error(`Error fetching all products for ${seller_name}:`, error);
@@ -147,19 +147,10 @@ app.get('/api/products', async (req, res) => {
       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') }; // Exact case insensitive match
     }
 
-    // Log the constructed query for debugging
-    console.log('Constructed MongoDB query:', query);
-
     const filteredData = await Route.find(query);
-
-    // Log the filtered data for debugging
-    console.log('Filtered data:', filteredData);
 
     // Fetch all photos from the database
     const photos = await Photo.find();
-
-    // Log the photos data for debugging
-    console.log('Photos data:', photos);
 
     // Create a map of SKU to image URL
     const photoMap = {};
@@ -187,9 +178,6 @@ app.get('/api/products', async (req, res) => {
       image1: data.image1,
       total_item_quantity: data.total_item_quantity
     }));
-
-    // Log the response data for debugging
-    console.log('Response data:', { orderCodeQuantities, products });
 
     res.json({ orderCodeQuantities, products });
   } catch (error) {
