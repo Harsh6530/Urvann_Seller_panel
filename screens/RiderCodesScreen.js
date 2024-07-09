@@ -11,14 +11,14 @@ const RiderCodesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://192.168.1.5:5001/api/sellers/${sellerName}/riders`)
+    axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/sellers/${sellerName}/riders`)
       .then(response => {
         console.log(`Fetched rider codes for ${sellerName}:`, response.data);
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
     
-    axios.get(`http://192.168.1.5:5001/api/sellers/${sellerName}/all`)
+    axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/sellers/${sellerName}/all`)
       .then(response => {
         console.log(`Fetched combined product count for ${sellerName}:`, response.data);
         setCombinedProductCount(response.data.totalProductCount);
