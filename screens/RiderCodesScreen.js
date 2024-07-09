@@ -54,7 +54,7 @@ const RiderCodesScreen = () => {
         ListHeaderComponent={() => (
           <TouchableOpacity onPress={handleCombineListPress}>
             <View style={styles.combineListTile}>
-              <Text style={styles.productCount}>Combine List</Text>
+              <Text style={styles.productCount}>Combined List</Text>
               <Text style={styles.text}>
                 {combinedProductCount} {combinedProductCount === 1 ? 'item' : 'items'}
               </Text>
