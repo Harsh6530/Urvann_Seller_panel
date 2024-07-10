@@ -92,37 +92,46 @@ app.get('/api/sellers', async (req, res) => {
 // GET /api/sellers/:seller_name/riders
 app.get('/api/sellers/:seller_name/riders', async (req, res) => {
   const { seller_name } = req.params;
+
   try {
-    const riders = await Route.find({ seller_name }).distinct('Driver Name'); // Ensure correct field name
+    const riders = await Route.find({ seller_name }).distinct('Driver Name').lean();
+
     const ridersWithCounts = await Promise.all(riders.map(async (riderCode) => {
       const productCount = await Route.aggregate([
-        { $match: { seller_name, 'Driver Name': riderCode } }, // Ensure correct field name
+        { $match: { seller_name, 'Driver Name': riderCode } },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
+
       return {
         riderCode,
-        productCount: productCount[0] ? productCount[0].totalQuantity : 0
+        productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
       };
     }));
+
     res.json(ridersWithCounts);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching riders:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
+
 // GET /api/sellers/:seller_name/all
 app.get('/api/sellers/:seller_name/all', async (req, res) => {
   const { seller_name } = req.params;
+
   try {
-    const products = await Route.find({ seller_name });
-  
+    // Fetch products for the seller
+    const products = await Route.find({ seller_name }).lean();
+
+    // Calculate total quantity of products for the seller
     const productCount = await Route.aggregate([
       { $match: { seller_name } },
       { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
     ]);
-    const totalProductCount = productCount[0] ? productCount[0].totalQuantity : 0;
- 
+    const totalProductCount = productCount.length > 0 ? productCount[0].totalQuantity : 0;
+
+    // Send response with total product count and products
     res.json({ totalProductCount, products });
   } catch (error) {
     console.error(`Error fetching all products for ${seller_name}:`, error);
