@@ -135,39 +135,36 @@ app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
   try {
-    // Adjusted query to handle case sensitivity and exact match issues
     let query = {
-      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } // Exact case insensitive match
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') }
     };
 
     if (rider_code !== 'all') {
-      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') }; // Exact case insensitive match
+      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
     }
 
-    const filteredData = await Route.find(query);
+    const filteredData = await Route.find(query)
+      .select('FINAL line_item_sku line_item_name total_item_quantity')
+      .lean();
 
-    // Fetch all photos from the database
-    const photos = await Photo.find();
+    const skuList = filteredData.map(data => data.line_item_sku);
+    const photos = await Photo.find({ sku: { $in: skuList } }).lean();
 
-    // Create a map of SKU to image URL
     const photoMap = {};
     photos.forEach(photo => {
       photoMap[photo.sku] = photo.image_url;
     });
 
-    // Merge filtered data with photo URLs
     const mergedData = filteredData.map(data => ({
-      ...data._doc,
+      ...data,
       image1: photoMap[data.line_item_sku] || null
     }));
 
-    // Calculate order code quantities
     const orderCodeQuantities = mergedData.reduce((acc, data) => {
       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
 
-    // Prepare products response
     const products = mergedData.map(data => ({
       FINAL: data.FINAL,
       line_item_sku: data.line_item_sku,
@@ -182,6 +179,7 @@ app.get('/api/products', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.get('/api/data/:sellerName', async (req, res) => {
   try {
