@@ -92,37 +92,46 @@ app.get('/api/sellers', async (req, res) => {
 // GET /api/sellers/:seller_name/riders
 app.get('/api/sellers/:seller_name/riders', async (req, res) => {
   const { seller_name } = req.params;
+
   try {
-    const riders = await Route.find({ seller_name }).distinct('Driver Name'); // Ensure correct field name
+    const riders = await Route.find({ seller_name }).distinct('Driver Name').lean();
+
     const ridersWithCounts = await Promise.all(riders.map(async (riderCode) => {
       const productCount = await Route.aggregate([
-        { $match: { seller_name, 'Driver Name': riderCode } }, // Ensure correct field name
+        { $match: { seller_name, 'Driver Name': riderCode } },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
+
       return {
         riderCode,
-        productCount: productCount[0] ? productCount[0].totalQuantity : 0
+        productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
       };
     }));
+
     res.json(ridersWithCounts);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching riders:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
+
 // GET /api/sellers/:seller_name/all
 app.get('/api/sellers/:seller_name/all', async (req, res) => {
   const { seller_name } = req.params;
+
   try {
-    const products = await Route.find({ seller_name });
-  
+    // Fetch products for the seller
+    const products = await Route.find({ seller_name }).lean();
+
+    // Calculate total quantity of products for the seller
     const productCount = await Route.aggregate([
       { $match: { seller_name } },
       { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
     ]);
-    const totalProductCount = productCount[0] ? productCount[0].totalQuantity : 0;
- 
+    const totalProductCount = productCount.length > 0 ? productCount[0].totalQuantity : 0;
+
+    // Send response with total product count and products
     res.json({ totalProductCount, products });
   } catch (error) {
     console.error(`Error fetching all products for ${seller_name}:`, error);
@@ -135,39 +144,36 @@ app.get('/api/products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
   try {
-    // Adjusted query to handle case sensitivity and exact match issues
     let query = {
-      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } // Exact case insensitive match
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') }
     };
 
     if (rider_code !== 'all') {
-      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') }; // Exact case insensitive match
+      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
     }
 
-    const filteredData = await Route.find(query);
+    const filteredData = await Route.find(query)
+      .select('FINAL line_item_sku line_item_name total_item_quantity')
+      .lean();
 
-    // Fetch all photos from the database
-    const photos = await Photo.find();
+    const skuList = filteredData.map(data => data.line_item_sku);
+    const photos = await Photo.find({ sku: { $in: skuList } }).lean();
 
-    // Create a map of SKU to image URL
     const photoMap = {};
     photos.forEach(photo => {
       photoMap[photo.sku] = photo.image_url;
     });
 
-    // Merge filtered data with photo URLs
     const mergedData = filteredData.map(data => ({
-      ...data._doc,
+      ...data,
       image1: photoMap[data.line_item_sku] || null
     }));
 
-    // Calculate order code quantities
     const orderCodeQuantities = mergedData.reduce((acc, data) => {
       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
 
-    // Prepare products response
     const products = mergedData.map(data => ({
       FINAL: data.FINAL,
       line_item_sku: data.line_item_sku,
@@ -182,6 +188,7 @@ app.get('/api/products', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.get('/api/data/:sellerName', async (req, res) => {
   try {
