@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import axios from 'axios';
 
 const SummaryScreen = ({ route }) => {
@@ -55,6 +55,10 @@ const SummaryScreen = ({ route }) => {
         <View style={styles.row}>
           <Text style={styles.headerCell}>Refunds</Text>
           <Text style={styles.cell}>{summary.Refunds}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.headerCell}>B2b deduction</Text>
+          <Text style={styles.cell}>{summary['B2b deduction']}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.headerCell}>Other Additions</Text>

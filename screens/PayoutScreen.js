@@ -10,7 +10,6 @@ const Tab = createMaterialTopTabNavigator();
 
 const PayoutTabs = ({ sellerName }) => (
   <Tab.Navigator
-    swipeEnabled={false} // Disable swiping between tabs
     screenOptions={{
       swipeEnabled: false, // Move swipeEnabled to screenOptions as well
     }}

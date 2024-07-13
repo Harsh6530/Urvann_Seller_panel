@@ -1,17 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert, Image, KeyboardAvoidingView, ScrollView, Platform, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Checkbox from 'expo-checkbox';
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const loadCredentials = async () => {
+      const storedUsername = await AsyncStorage.getItem('username');
+      const storedPassword = await AsyncStorage.getItem('password');
+      const storedRememberMe = await AsyncStorage.getItem('rememberMe');
+
+      if (storedRememberMe === 'true' && storedUsername && storedPassword) {
+        setUsername(storedUsername);
+        setPassword(storedPassword);
+        setRememberMe(true);
+      }
+    };
+    loadCredentials();
+  }, []);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const filterInput = (text) => {
-    // Example filtering logic, you can customize as needed
-    return text.trim(); // Trim leading and trailing whitespace
+    return text.trim();
   };
 
   const handleLogin = async () => {
@@ -19,6 +56,17 @@ const LoginScreen = ({ navigation }) => {
       const response = await axios.post(`https://urvann-seller-panel-yc3k.onrender.com/api/login`, { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
+
+        if (rememberMe) {
+          await AsyncStorage.setItem('username', username);
+          await AsyncStorage.setItem('password', password);
+          await AsyncStorage.setItem('rememberMe', 'true');
+        } else {
+          await AsyncStorage.removeItem('username');
+          await AsyncStorage.removeItem('password');
+          await AsyncStorage.removeItem('rememberMe');
+        }
+
         navigation.reset({
           index: 0,
           routes: [{ name: 'MainTabs', params: { sellerName: username } }],
@@ -35,7 +83,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#fff', '#fff']} style={styles.container}>
+    <LinearGradient colors={['#f9f9f9', '#287238']} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingContainer}
@@ -53,21 +101,44 @@ const LoginScreen = ({ navigation }) => {
               placeholderTextColor="#888"
               value={username}
               onChangeText={(text) => setUsername(filterInput(text).toUpperCase())}
+              autoCapitalize="none"
+              autoCorrect={false}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#888"
-              value={password}
-              onChangeText={(text) => setPassword(filterInput(text))}
-              secureTextEntry
-            />
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
-              <Text style={[styles.buttonText, styles.registerButtonText]}>New user? Register</Text>
-            </TouchableOpacity>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Password"
+                placeholderTextColor="#888"
+                value={password}
+                onChangeText={(text) => setPassword(filterInput(text))}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.showPasswordButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons name={showPassword ? "eye" : "eye-off"} size={24} color="#287238" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.rememberMeContainer}>
+              <TouchableOpacity
+                style={styles.rememberMeCheckbox}
+                onPress={() => setRememberMe(!rememberMe)}
+              >
+                <View style={[styles.checkbox, rememberMe ? styles.checked : null]}>
+                  {rememberMe && <Ionicons name="checkmark" size={16} color="white" />}
+                </View>
+                <Text style={styles.rememberMeText}>Remember Me</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.buttonContainer, keyboardVisible && { marginBottom: 40 }]}>
+              <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                <Text style={styles.buttonText}>Login</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
+                <Text style={[styles.buttonText, styles.registerButtonText]}>Register</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -117,23 +188,70 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  checkboxContainer: {
+  passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    width: '100%',
   },
-  checkboxLabel: {
-    marginLeft: 8,
+  passwordInput: {
+    height: 50,
+    flex: 1,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 25,
+    marginBottom: 20,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
     fontSize: 16,
     color: '#333',
   },
+  showPasswordButton: {
+    position: 'absolute',
+    right: 20,
+    top: 10,
+  },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    justifyContent: 'center',
+  },
+  rememberMeCheckbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checked: {
+    backgroundColor: '#f8b314',
+    borderColor: '#f8b314',
+  },
+  rememberMeText: {
+    fontSize: 17,
+    color: '#333',
+  },
+  buttonContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   button: {
-    backgroundColor: '#287238',
+    flex: 1,
+    backgroundColor: '#f8b314',
     paddingVertical: 15,
     borderRadius: 25,
     alignItems: 'center',
     marginBottom: 10,
-    width: '100%',
+    marginHorizontal: 5,
   },
   buttonText: {
     color: '#fff',
@@ -141,13 +259,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   registerButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-    width: '100%',
+    backgroundColor: '#f8b314',
   },
   registerButtonText: {
-    color: '#4CAF50',
+    color: '#fff',
   },
 });
 
