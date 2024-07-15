@@ -17,8 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Adaptive_size.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/512x512.png",
+        "backgroundColor": "#fff"
       },
       "package": "com.sharmaharsh634.urvann_app",
       "permissions": [

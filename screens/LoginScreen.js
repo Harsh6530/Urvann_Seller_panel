@@ -135,10 +135,10 @@ const LoginScreen = ({ navigation }) => {
               <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Login</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={() => navigation.navigate('Register')}>
-                <Text style={[styles.buttonText, styles.registerButtonText]}>Register</Text>
-              </TouchableOpacity>
             </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.registerText}>Don't have an account? <Text style={styles.registerLink}>Register</Text></Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   button: {
     flex: 1,
@@ -250,7 +250,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 25,
     alignItems: 'center',
-    marginBottom: 10,
     marginHorizontal: 5,
   },
   buttonText: {
@@ -258,11 +257,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  registerButton: {
-    backgroundColor: '#f8b314',
+  registerText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: '#333',
   },
-  registerButtonText: {
-    color: '#fff',
+  registerLink: {
+    color: '#f8b314',
+    fontWeight: 'bold',
   },
 });
 

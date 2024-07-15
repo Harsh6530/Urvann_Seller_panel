@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 
 const SummaryScreen = ({ route }) => {
@@ -26,7 +26,8 @@ const SummaryScreen = ({ route }) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#287238" />
         <Text>Loading summary...</Text>
       </View>
     );
@@ -34,93 +35,81 @@ const SummaryScreen = ({ route }) => {
 
   if (error || !summary) {
     return (
-      <View style={styles.container}>
+      <View style={styles.errorContainer}>
         <Text>Error loading summary data.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Summary for {sellerName}</Text>
-      <View style={styles.summaryContainer}>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Name</Text>
-          <Text style={styles.cell}>{summary.Name}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Payable</Text>
-          <Text style={styles.cell}>{summary.Payable}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Refunds</Text>
-          <Text style={styles.cell}>{summary.Refunds}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>B2b deduction</Text>
-          <Text style={styles.cell}>{summary['B2b deduction']}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Other Additions</Text>
-          <Text style={styles.cell}>{summary['Other additions']}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>B2B Sales</Text>
-          <Text style={styles.cell}>{summary['B2B sales']}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Stickers</Text>
-          <Text style={styles.cell}>{summary.Stickers}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Penalty</Text>
-          <Text style={styles.cell}>{summary.Penalty}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.headerCell}>Total Paid</Text>
-          <Text style={styles.cell}>{summary['Total Paid']}</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <View style={styles.card}>
+          {Object.keys(summary).map((key) => {
+            if (key === '_id') {
+              return null; // Skip rendering _id field
+            }
+            return (
+              <View style={styles.row} key={key}>
+                <Text style={styles.headerCell}>{key}</Text>
+                <Text style={styles.cell}>{summary[key]}</Text>
+              </View>
+            );
+          })}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  container: {
+    width: '100%',
+    maxWidth: 600,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
     backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  summaryContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 20,
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
   },
   row: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: '#ccc',
   },
   headerCell: {
-    width: 160, // Set a fixed width for header cells
-    padding: 10,
     fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRightWidth: 1,
-    borderTopWidth: 1,
-    borderColor: '#ccc',
+    color: '#333',
+    width: '50%',
   },
   cell: {
-    width: 150, // Set a fixed width for cells
-    padding: 10,
-    textAlign: 'center',
-    borderColor: '#ccc',
+    color: '#666',
+    width: '50%',
+    textAlign: 'right',
   },
 });
 
