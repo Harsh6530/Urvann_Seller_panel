@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 
 const PayableScreen = ({ route }) => {
@@ -37,8 +37,9 @@ const PayableScreen = ({ route }) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Text>Loading payables...</Text>
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#287238" />
+        <Text style={styles.loadingText}>Loading payables...</Text>
       </View>
     );
   }
@@ -53,7 +54,7 @@ const PayableScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Payables for {sellerName}</Text>
+      {/* <Text style={styles.title}>Payables for {sellerName}</Text> */}
       <ScrollView horizontal>
         <View>
           <View style={styles.headerRow}>
@@ -80,6 +81,16 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
   title: {
     fontSize: 20,
