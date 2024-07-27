@@ -16,7 +16,7 @@ const RefundScreen = ({ route }) => {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching refunds:', error);
-        setError(error);
+        setError('Error loading refund data.');
         setLoading(false);
       }
     };
@@ -45,17 +45,19 @@ const RefundScreen = ({ route }) => {
     );
   }
 
-  if (error) {
+  if (error || refunds.length === 0) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
-        <Text>Error loading refund data.</Text>
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.sadEmoji}>😔</Text>
+          <Text style={styles.noDataText}>Oops! No refund data available for {sellerName}.</Text>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>Refunds for {sellerName}</Text> */}
       <ScrollView horizontal>
         <View>
           <View style={styles.headerRow}>
@@ -98,11 +100,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+    //backgroundColor: '#f9f9f9',
   },
-  title: {
-    fontSize: 20,
+  sadEmoji: {
+    fontSize: 40,
+  },
+  noDataText: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginVertical: 10,
+    textAlign: 'center',
   },
   headerRow: {
     flexDirection: 'row',
@@ -116,20 +124,18 @@ const styles = StyleSheet.create({
     padding: 10,
     fontWeight: 'bold',
     textAlign: 'center',
-    borderRightWidth: 1,
-    borderColor: '#ccc',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
   },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#eee',
+    padding: 10,
   },
   cell: {
     width: 100, // Set a fixed width for all cells
-    padding: 10,
     textAlign: 'center',
-    borderRightWidth: 1,
-    borderColor: '#ccc',
   },
 });
 

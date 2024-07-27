@@ -7,17 +7,26 @@ const SummaryScreen = ({ route }) => {
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [noData, setNoData] = useState(false);
 
   useEffect(() => {
     const fetchSummary = async () => {
       try {
         const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/summary/${sellerName}`);
-        setSummary(response.data);
+        if (Object.keys(response.data).length === 0) {
+          setNoData(true); // No data but no error
+        } else {
+          setSummary(response.data);
+          setNoData(false); // Reset noData if data is found
+        }
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching summary:', error);
-        setError(error);
         setLoading(false);
+        if (error.response && error.response.status === 404) {
+          setError(`Oops! No summary data available for ${sellerName}.`);
+        } else {
+          setError('Error loading summary data.');
+        }
       }
     };
 
@@ -28,15 +37,25 @@ const SummaryScreen = ({ route }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#287238" />
-        <Text>Loading summary...</Text>
+        <Text style={styles.loadingText}>Loading summary...</Text>
       </View>
     );
   }
 
-  if (error || !summary) {
+  if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text>Error loading summary data.</Text>
+        <Text style={styles.sadEmoji}>😔</Text>
+        <Text style={styles.noDataText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (noData) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.sadEmoji}>😔</Text>
+        <Text style={styles.noDataText}>Oops! No summary data available for {sellerName}.</Text>
       </View>
     );
   }
@@ -79,10 +98,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f9f9f9',
+  },
+  sadEmoji: {
+    fontSize: 40,
+  },
+  noDataText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    textAlign: 'center',
   },
   card: {
     backgroundColor: '#fff',

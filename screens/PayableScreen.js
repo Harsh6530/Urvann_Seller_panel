@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator, Image } from 'react-native';
 import axios from 'axios';
 
 const PayableScreen = ({ route }) => {
@@ -47,7 +47,10 @@ const PayableScreen = ({ route }) => {
   if (error || !payables.length) {
     return (
       <View style={styles.container}>
-        <Text>Error loading payable data.</Text>
+        <View style={styles.noDataContainer}>
+          <Text style={styles.sadEmoji}>😔</Text>
+          <Text style={styles.noDataText}>Oops! No payable data available for {sellerName}.</Text>
+        </View>
       </View>
     );
   }
@@ -92,10 +95,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  title: {
-    fontSize: 20,
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    //backgroundColor: '#f9f9f9',
+  },
+  sadEmoji: {
+    fontSize: 40,
+  },
+  noDataText: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginVertical: 10,
+    textAlign: 'center',
   },
   headerRow: {
     flexDirection: 'row',

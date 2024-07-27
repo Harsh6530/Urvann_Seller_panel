@@ -41,10 +41,19 @@ const DeliveryUpdatesScreen = ({ route }) => {
     );
   }
 
-  if (error || deliveryUpdates.length === 0) {
+  if (error) {
     return (
       <View style={styles.container}>
-        <Text>Error loading delivery updates or no data available.</Text>
+        <Text style={styles.errorText}>Error loading delivery updates. Please try again later.</Text>
+      </View>
+    );
+  }
+
+  if (deliveryUpdates.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.noDataEmoji}>😔</Text>
+        <Text style={styles.noDataText}>Oops! No delivery updates available for {sellerName}.</Text>
       </View>
     );
   }
@@ -85,6 +94,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#333',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  noDataEmoji: {
+    fontSize: 40,
+    textAlign: 'center',
+  },
+  noDataText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    textAlign: 'center',
   },
   title: {
     fontSize: 20,
