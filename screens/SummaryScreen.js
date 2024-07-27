@@ -46,8 +46,8 @@ const SummaryScreen = ({ route }) => {
       <View style={styles.container}>
         <View style={styles.card}>
           {Object.keys(summary).map((key) => {
-            if (key === '_id') {
-              return null; // Skip rendering _id field
+            if (key === '_id' || key === 'B2b deductions') {
+              return null; // Skip rendering _id and B2b deductions fields
             }
             return (
               <View style={styles.row} key={key}>
