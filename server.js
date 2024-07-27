@@ -153,7 +153,8 @@ app.get('/api/products', async (req, res) => {
     }
 
     const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity')
+      .select('FINAL line_item_sku line_item_name total_item_quantity line_item_price GMV')
+      .sort({ GMV: -1 }) // Sort by GMV in decreasing order
       .lean();
 
     const skuList = filteredData.map(data => data.line_item_sku);
@@ -179,7 +180,8 @@ app.get('/api/products', async (req, res) => {
       line_item_sku: data.line_item_sku,
       line_item_name: data.line_item_name,
       image1: data.image1,
-      total_item_quantity: data.total_item_quantity
+      total_item_quantity: data.total_item_quantity,
+      line_item_price: data.line_item_price
     }));
 
     res.json({ orderCodeQuantities, products });
@@ -188,7 +190,6 @@ app.get('/api/products', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 
 app.get('/api/data/:sellerName', async (req, res) => {
   try {

@@ -18,7 +18,7 @@ const ProductDetailsScreen = ({ route }) => {
         const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/products`, {
           params: {
             seller_name: sellerName,
-            rider_code: riderCode !== 'all' ? riderCode : 'all'  // Ensure 'all' is passed correctly
+            rider_code: riderCode !== 'all' ? riderCode : 'all',
           }
         });
 
@@ -42,24 +42,29 @@ const ProductDetailsScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#007bff" />
       </View>
     );
   }
 
-  // Function to aggregate products by SKU for the combined list
-  const aggregateProductsBySKU = (products) => {
-    const productMap = {};
-    products.forEach(product => {
-      const sku = product.line_item_sku;
-      if (productMap[sku]) {
-        productMap[sku].total_item_quantity += product.total_item_quantity;
+  // Combine products and sort by GMV
+  const combineListProducts = (products) => {
+    const combined = products.reduce((acc, product) => {
+      const existingProduct = acc.find(p => p.line_item_sku === product.line_item_sku);
+      if (existingProduct) {
+        existingProduct.total_item_quantity += product.total_item_quantity;
+        existingProduct.GMV += product.GMV; // Ensure GMV is updated
       } else {
-        productMap[sku] = { ...product };
+        acc.push({ ...product });
       }
-    });
-    return Object.values(productMap);
+      return acc;
+    }, []);
+
+    // Sort combined products by GMV in decreasing order
+    return combined.sort((a, b) => b.GMV - a.GMV);
   };
+
+  const combinedProducts = combineListProducts(products);
 
   const groupedProducts = {};
   products.forEach(product => {
@@ -76,9 +81,18 @@ const ProductDetailsScreen = ({ route }) => {
       <View style={styles.productContainer}>
         <LazyImage source={{ uri: item.image1 }} style={styles.image} />
         <View style={styles.textContainer}>
-          <Text style={styles.text}>SKU: {item.line_item_sku}</Text>
-          <Text style={styles.text}>Name: {item.line_item_name}</Text>
-          <Text style={styles.text}>Quantity: {item.total_item_quantity}</Text>
+          <Text>
+            <Text style={styles.boldText}>SKU: </Text>{item.line_item_sku}
+          </Text>
+          <Text>
+            <Text style={styles.boldText}>Name: </Text>{item.line_item_name}
+          </Text>
+          <Text>
+            <Text style={styles.boldText}>Price: </Text>₹{item.line_item_price !== undefined ? item.line_item_price.toFixed(2) : 'N/A'}
+          </Text>
+          <Text>
+            <Text style={styles.boldText}>Quantity: </Text>{item.total_item_quantity}
+          </Text>
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -92,7 +106,7 @@ const ProductDetailsScreen = ({ route }) => {
             <Text style={styles.header}>Combined List</Text>
           </View>
           <FlatList
-            data={aggregateProductsBySKU(products)}
+            data={combinedProducts}
             renderItem={renderProduct}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.scrollViewContainer}
@@ -111,9 +125,18 @@ const ProductDetailsScreen = ({ route }) => {
                   <View style={styles.productContainer}>
                     <LazyImage source={{ uri: product.image1 }} style={styles.image} />
                     <View style={styles.textContainer}>
-                      <Text style={styles.text}>SKU: {product.line_item_sku}</Text>
-                      <Text style={styles.text}>Name: {product.line_item_name}</Text>
-                      <Text style={styles.text}>Quantity: {product.total_item_quantity}</Text>
+                      <Text>
+                        <Text style={styles.boldText}>SKU: </Text>{product.line_item_sku}
+                      </Text>
+                      <Text>
+                        <Text style={styles.boldText}>Name: </Text>{product.line_item_name}
+                      </Text>
+                      <Text>
+                        <Text style={styles.boldText}>Price: </Text>₹{product.line_item_price !== undefined ? product.line_item_price.toFixed(2) : 'N/A'}
+                      </Text>
+                      <Text>
+                        <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
+                      </Text>
                     </View>
                   </View>
                 </TouchableWithoutFeedback>
@@ -133,9 +156,18 @@ const ProductDetailsScreen = ({ route }) => {
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 <LazyImage source={{ uri: selectedProduct.image1 }} style={styles.fullScreenImage} />
-                <Text style={styles.modalText}>SKU: {selectedProduct.line_item_sku}</Text>
-                <Text style={styles.modalText}>Name: {selectedProduct.line_item_name}</Text>
-                <Text style={styles.modalText}>Quantity: {selectedProduct.total_item_quantity}</Text>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>SKU: </Text>{selectedProduct.line_item_sku}
+                </Text>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>Name: </Text>{selectedProduct.line_item_name}
+                </Text>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>Price: </Text>₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}
+                </Text>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
+                </Text>
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -148,59 +180,80 @@ const ProductDetailsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0f4f8',
     paddingTop: 20,
   },
   wrapper: {},
   scrollViewContainer: {
     flexGrow: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0f4f8',
   },
   headerContainer: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#ffffff',
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 10,
     width: '90%',
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   header: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    padding: 10,
+    color: '#333',
   },
   subHeader: {
     fontSize: 18,
-    color: '#555',
+    color: '#777',
     textAlign: 'center',
-    marginBottom: 10,
+    marginTop: 5,
   },
   productContainer: {
     flexDirection: 'row',
-    marginBottom: 10,
-    backgroundColor: '#f9f9f9',
-    padding: 10,
-    borderColor: '#ccc',
+    marginBottom: 15,
+    backgroundColor: '#ffffff',
+    padding: 15,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 10,
     width: '90%',
     alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   image: {
     width: 100,
     height: 100,
     resizeMode: 'cover',
-    marginRight: 10,
+    marginRight: 15,
+    borderRadius: 10,
   },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
   },
+  boldText: {
+    fontWeight: 'bold',
+  },
   text: {
     fontSize: 16,
     marginBottom: 5,
+    lineHeight: 20,
+    color: '#333',
+  },
+  nameText: {
+    fontSize: 16,
+    marginBottom: 5,
+    lineHeight: 16,
+    color: '#333',
   },
   modalContainer: {
     flex: 1,
@@ -208,22 +261,29 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 20,
     alignItems: 'center',
     margin: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
   },
   fullScreenImage: {
-    marginTop: 10,
     width: '100%',
     height: 300,
     resizeMode: 'contain',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   modalText: {
     fontSize: 18,
+    color: '#333',
     marginBottom: 10,
+  },
+  boldModalText: {
+    fontWeight: 'bold',
   },
 });
 
