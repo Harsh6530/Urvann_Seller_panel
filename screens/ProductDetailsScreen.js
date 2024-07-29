@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import axios from 'axios';
 import Swiper from 'react-native-swiper';
-import LazyImage from '../LazyImage';
+import LazyImage from '../LazyImage'; // Ensure LazyImage is correctly imported
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProductDetailsScreen = ({ route }) => {
   const { sellerName, riderCode } = route.params;
@@ -12,26 +13,62 @@ const ProductDetailsScreen = ({ route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Function to save pickup status locally
+  const savePickupStatusLocally = async (sku, orderCode, status) => {
+    try {
+      await AsyncStorage.setItem(`${sku}_${orderCode}`, status);
+    } catch (error) {
+      console.error('Error saving pickup status:', error);
+    }
+  };
+
+  // Function to load pickup status locally
+  const loadPickupStatusLocally = async (sku, orderCode) => {
+    try {
+      const status = await AsyncStorage.getItem(`${sku}_${orderCode}`);
+      return status || "Not Picked";
+    } catch (error) {
+      console.error('Error loading pickup status:', error);
+      return "Not Picked";
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/products`, {
+        params: {
+          seller_name: sellerName,
+          rider_code: riderCode !== 'all' ? riderCode : 'all',
+        }
+      });
+
+      const fetchedProducts = await Promise.all(response.data.products.map(async product => {
+        const localStatus = await loadPickupStatusLocally(product.line_item_sku, product.FINAL);
+        return {
+          ...product,
+          "Pickup Status": localStatus
+        };
+      }));
+
+      setProducts(fetchedProducts);
+      setOrderCodeQuantities(response.data.orderCodeQuantities);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/products`, {
-          params: {
-            seller_name: sellerName,
-            rider_code: riderCode !== 'all' ? riderCode : 'all',
-          }
-        });
-
-        setProducts(response.data.products);
-        setOrderCodeQuantities(response.data.orderCodeQuantities);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProducts();
+
+    // Set up interval to refresh products every minute
+    const intervalId = setInterval(() => {
+      fetchProducts();
+    }, 60000); // 60000 ms = 1 minute
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, [sellerName, riderCode]);
 
   const handleImagePress = (product) => {
@@ -39,46 +76,39 @@ const ProductDetailsScreen = ({ route }) => {
     setModalVisible(true);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
-    );
-  }
-
-  // Combine products and sort by GMV
-  const combineListProducts = (products) => {
-    const combined = products.reduce((acc, product) => {
-      const existingProduct = acc.find(p => p.line_item_sku === product.line_item_sku);
-      if (existingProduct) {
-        existingProduct.total_item_quantity += product.total_item_quantity;
-        existingProduct.GMV += product.GMV; // Ensure GMV is updated
-      } else {
-        acc.push({ ...product });
+  const toggleProductStatus = async (sku, orderCode) => {
+    const updatedProducts = products.map(product => {
+      if (product.line_item_sku === sku && product.FINAL === orderCode) {
+        const newStatus = product["Pickup Status"] === "Not Picked" ? "Picked" : "Not Picked";
+        return { ...product, "Pickup Status": newStatus };
       }
-      return acc;
-    }, []);
+      return product;
+    });
 
-    // Sort combined products by GMV in decreasing order
-    return combined.sort((a, b) => b.GMV - a.GMV);
+    setProducts(updatedProducts);
+
+    try {
+      const productToUpdate = updatedProducts.find(product => product.line_item_sku === sku && product.FINAL === orderCode);
+      if (!productToUpdate) {
+        console.error(`Product with SKU ${sku} and order code ${orderCode} not found.`);
+        return;
+      }
+      const newStatus = productToUpdate["Pickup Status"];
+      await axios.post('https://urvann-seller-panel-yc3k.onrender.com/api/update-pickup-status', {
+        sku,
+        orderCode,
+        status: newStatus
+      });
+
+      await savePickupStatusLocally(sku, orderCode, newStatus);
+    } catch (error) {
+      console.error('Error updating pickup status:', error);
+    }
   };
 
-  const combinedProducts = combineListProducts(products);
-
-  const groupedProducts = {};
-  products.forEach(product => {
-    if (!groupedProducts[product['FINAL']]) {
-      groupedProducts[product['FINAL']] = [];
-    }
-    groupedProducts[product['FINAL']].push(product);
-  });
-
-  const sortedFinalCodes = Object.keys(groupedProducts).sort((a, b) => a.localeCompare(b));
-
   const renderProduct = ({ item }) => (
-    <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
-      <View style={styles.productContainer}>
+    <TouchableWithoutFeedback onPress={() => toggleProductStatus(item.line_item_sku, item.FINAL)}>
+      <View style={[styles.productContainer, item["Pickup Status"] === "Picked" ? styles.picked : styles.notPicked]}>
         <LazyImage source={{ uri: item.image1 }} style={styles.image} />
         <View style={styles.textContainer}>
           <Text>
@@ -93,10 +123,33 @@ const ProductDetailsScreen = ({ route }) => {
           <Text>
             <Text style={styles.boldText}>Quantity: </Text>{item.total_item_quantity}
           </Text>
+          {riderCode !== 'all' && (
+            <Text style={[styles.statusText, item["Pickup Status"] === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
+              {item["Pickup Status"]}
+            </Text>
+          )}
         </View>
       </View>
     </TouchableWithoutFeedback>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
+  const groupedProducts = {};
+  products.forEach(product => {
+    if (!groupedProducts[product['FINAL']]) {
+      groupedProducts[product['FINAL']] = [];
+    }
+    groupedProducts[product['FINAL']].push(product);
+  });
+
+  const sortedFinalCodes = Object.keys(groupedProducts).sort((a, b) => a.localeCompare(b));
 
   return (
     <View style={styles.container}>
@@ -106,7 +159,7 @@ const ProductDetailsScreen = ({ route }) => {
             <Text style={styles.header}>Combined List</Text>
           </View>
           <FlatList
-            data={combinedProducts}
+            data={products}
             renderItem={renderProduct}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.scrollViewContainer}
@@ -136,6 +189,9 @@ const ProductDetailsScreen = ({ route }) => {
                       </Text>
                       <Text>
                         <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
+                      </Text>
+                      <Text style={[styles.statusText, product["Pickup Status"] === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
+                        {product["Pickup Status"]}
                       </Text>
                     </View>
                   </View>
@@ -168,6 +224,9 @@ const ProductDetailsScreen = ({ route }) => {
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
                 </Text>
+                <Text style={[styles.statusText, selectedProduct["Pickup Status"] === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
+                  {selectedProduct["Pickup Status"]}
+                </Text>
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -180,61 +239,48 @@ const ProductDetailsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4f8',
-    paddingTop: 20,
+    backgroundColor: '#f4f4f4',
   },
-  wrapper: {},
+  wrapper: {
+    height: '100%',
+  },
   scrollViewContainer: {
-    flexGrow: 1,
-    backgroundColor: '#f0f4f8',
+    padding: 10,
   },
   headerContainer: {
-    backgroundColor: '#ffffff',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    width: '90%',
-    alignSelf: 'center',
-    marginBottom: 20,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    marginBottom: 10,
   },
   header: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
   },
   subHeader: {
-    fontSize: 18,
-    color: '#777',
-    textAlign: 'center',
-    marginTop: 5,
+    fontSize: 16,
+    color: '#555',
   },
   productContainer: {
     flexDirection: 'row',
-    marginBottom: 15,
-    backgroundColor: '#ffffff',
-    padding: 15,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 10,
-    width: '90%',
-    alignSelf: 'center',
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  picked: {
+    backgroundColor: '#d4edda',
+  },
+  notPicked: {
+    backgroundColor: '#f8d7da',
   },
   image: {
     width: 100,
     height: 100,
-    resizeMode: 'cover',
-    marginRight: 15,
-    borderRadius: 10,
+    marginRight: 10,
+    borderRadius: 5,
   },
   textContainer: {
     flex: 1,
@@ -243,44 +289,36 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: 'bold',
   },
-  text: {
-    fontSize: 16,
-    marginBottom: 5,
-    lineHeight: 20,
-    color: '#333',
+  statusText: {
+    fontSize: 14,
+    marginTop: 5,
   },
-  nameText: {
-    fontSize: 16,
-    marginBottom: 5,
-    lineHeight: 16,
-    color: '#333',
+  pickedStatus: {
+    color: 'green',
+  },
+  notPickedStatus: {
+    color: 'red',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    width: '90%',
     padding: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    margin: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
   },
   fullScreenImage: {
     width: '100%',
-    height: 300,
-    resizeMode: 'contain',
+    height: 200,
     marginBottom: 10,
   },
   modalText: {
-    fontSize: 18,
-    color: '#333',
-    marginBottom: 10,
+    fontSize: 16,
+    marginVertical: 5,
   },
   boldModalText: {
     fontWeight: 'bold',

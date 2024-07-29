@@ -139,58 +139,6 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
   }
 });
 
-// GET /api/products
-app.get('/api/products', async (req, res) => {
-  const { seller_name, rider_code } = req.query;
-
-  try {
-    let query = {
-      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') }
-    };
-
-    if (rider_code !== 'all') {
-      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
-    }
-
-    const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity line_item_price GMV')
-      .sort({ GMV: -1 }) // Sort by GMV in decreasing order
-      .lean();
-
-    const skuList = filteredData.map(data => data.line_item_sku);
-    const photos = await Photo.find({ sku: { $in: skuList } }).lean();
-
-    const photoMap = {};
-    photos.forEach(photo => {
-      photoMap[photo.sku] = photo.image_url;
-    });
-
-    const mergedData = filteredData.map(data => ({
-      ...data,
-      image1: photoMap[data.line_item_sku] || null
-    }));
-
-    const orderCodeQuantities = mergedData.reduce((acc, data) => {
-      acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
-      return acc;
-    }, {});
-
-    const products = mergedData.map(data => ({
-      FINAL: data.FINAL,
-      line_item_sku: data.line_item_sku,
-      line_item_name: data.line_item_name,
-      image1: data.image1,
-      total_item_quantity: data.total_item_quantity,
-      line_item_price: data.line_item_price
-    }));
-
-    res.json({ orderCodeQuantities, products });
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
 app.get('/api/data/:sellerName', async (req, res) => {
   try {
     const sellerName = req.params.sellerName;

@@ -20,7 +20,8 @@ const routeSchema = new mongoose.Schema({
   FINAL: { type: String, required: true },
   Items: { type: Number, required: true },
   //Delivery_Status: { type: String, required: true },
-  Driver_Name: { type: String, required: true }
+  'Driver Name': { type: String, required: true },
+  'Pickup Status': { type: String, required: true }
 }, { collection: 'route' });
 
 module.exports = mongoose.model('Route', routeSchema);
