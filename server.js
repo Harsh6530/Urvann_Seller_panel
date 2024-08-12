@@ -154,6 +154,9 @@ app.get('/api/sellers/:seller_name/riders', async (req, res) => {
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
 
+      // Add logging to see the results of the aggregation
+      console.log(`Rider: ${riderCode}, Product Count: `, productCount);
+
       return {
         riderCode,
         productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
