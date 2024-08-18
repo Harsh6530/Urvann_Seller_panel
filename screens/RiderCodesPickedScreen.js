@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-const RiderCodesScreen = () => {
+const RiderCodesPickedScreen = () => {
   const { params } = useRoute();
   const { sellerName } = params;
   const [ridersWithCounts, setRidersWithCounts] = useState([]);
@@ -11,39 +11,44 @@ const RiderCodesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.5.16.225:5001/api/sellers/${sellerName}/riders`)
+    axios.get(`http://10.5.16.225:5001/api/sellers/${sellerName}/drivers/picked`)
       .then(response => {
+        console.log('Riders with counts:', response.data); // Log the response data
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
-    
-    axios.get(`http://10.5.16.225:5001/api/sellers/${sellerName}/all`)
-      .then(response => {
-        setCombinedProductCount(response.data.totalProductCount);
-      })
-      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
+  
+    // Fetch combined product count with "Not Picked" status
+    axios.get(`http://10.5.16.225:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
+    .then(response => {
+      setCombinedProductCount(response.data.totalProductCount);
+    })
+    .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
   }, [sellerName]);
-  
-  
-  const handleRiderPress = (riderCode) => {
-    navigation.navigate('ProductDetails', { sellerName, riderCode });
+
+  const handleRiderPress = (driverName) => {
+  navigation.navigate('ProductDetails', { sellerName, driverName, pickupStatus: 'Picked' });
   };
 
   const handleCombineListPress = () => {
-    navigation.navigate('ProductDetails', { sellerName, riderCode: 'all' });
+  navigation.navigate('ProductDetails', { sellerName, driverName: 'all', pickupStatus: 'Picked' });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Riders for {sellerName}:</Text>
+  <View style={styles.container}>
+    {ridersWithCounts.length === 0 ? (
+      <View style={styles.noItemsContainer}>
+        <Text style={styles.noItemsText}>All items are picked!</Text>
+      </View>
+    ) : (
       <FlatList
         data={ridersWithCounts}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleRiderPress(item.riderCode)}>
+          <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
             <View style={styles.tile}>
               <Text style={styles.productCount}>
-                {item.riderCode}
+                {item.driverName}
               </Text>
               <Text style={styles.text}>
                 {item.productCount} {item.productCount === 1 ? 'item' : 'items'}
@@ -62,32 +67,33 @@ const RiderCodesScreen = () => {
           </TouchableOpacity>
         )}
       />
-    </View>
+    )}
+  </View>
   );
-};
+  };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0f4f8',
     paddingHorizontal: 20,
     paddingTop: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
   },
   tile: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    marginVertical: 10,
-    backgroundColor: '#f9f9f9',
-    borderColor: '#ccc',
+    padding: 15,
+    marginVertical: 8,
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
   combineListTile: {
     flexDirection: 'row',
@@ -99,6 +105,16 @@ const styles = StyleSheet.create({
     borderColor: '#aaa',
     borderWidth: 1,
     borderRadius: 5,
+  },
+  noItemsContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noItemsText: {
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 10,
   },
   productCount: {
     fontSize: 18,
@@ -112,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RiderCodesScreen;
+export default RiderCodesPickedScreen;

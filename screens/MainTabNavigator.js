@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import PayoutScreen from './PayoutScreen';
 import DeliveryUpdatesScreen from './DeliveryUpdatesScreen';
-import RiderCodesScreen from './RiderCodesScreen';
+import PickupNavigator from './PickupNavigator'; // Import the correctly set up PickupNavigator
 import { TouchableOpacity, Text, Alert } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,10 +15,7 @@ const MainTabNavigator = ({ navigation, route }) => {
 
   const handleLogout = async () => {
     try {
-      // Clear any async storage or context related to the user session
       await AsyncStorage.removeItem('userToken'); // Assuming you stored token as 'userToken'
-
-      // Reset the navigation stack to prevent going back to the main screen
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -28,7 +25,6 @@ const MainTabNavigator = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error during logout:', error);
       Alert.alert('Logout Failed', 'Unable to logout at this time. Please try again later.');
-      // Handle any specific error case, e.g., retrying, showing an alert, etc.
     }
   };
 
@@ -59,9 +55,9 @@ const MainTabNavigator = ({ navigation, route }) => {
           fontSize: 12,
         },
         headerStyle: {
-          backgroundColor: '#287238', // Set header background color to green
+          backgroundColor: '#287238',
         },
-        headerTintColor: '#fff', // Set header text color
+        headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
         },
@@ -73,10 +69,9 @@ const MainTabNavigator = ({ navigation, route }) => {
       })}
     >
       <Tab.Screen name="Payout" component={PayoutScreen} initialParams={{ sellerName }} />
-      <Tab.Screen name="Pickup" component={RiderCodesScreen} initialParams={{ sellerName }} />
+      <Tab.Screen name="Pickup" component={PickupNavigator} initialParams={{ sellerName }} /> 
       <Tab.Screen name="Delivery Updates" component={DeliveryUpdatesScreen} initialParams={{ sellerName }} />
     </Tab.Navigator>
   );
 };
-
 export default MainTabNavigator;
