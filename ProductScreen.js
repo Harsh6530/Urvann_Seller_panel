@@ -5,7 +5,7 @@ import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
 
 const ProductDetailsScreen = ({ route }) => {
-  const { sellerName, driverName, pickupStatus } = route.params;  // Accept the new parameter
+  const { sellerName, riderCode } = route.params;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
@@ -14,14 +14,10 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const endpoint = pickupStatus === 'Picked' 
-        ? 'http://10.5.16.225:5001/api/products/picked' 
-        : 'http://10.5.16.225:5001/api/products/not-picked';
-
-      const response = await axios.get(endpoint, {
+      const response = await axios.get('http://10.5.16.225:5001/api/products', {
         params: {
           seller_name: sellerName,
-          rider_code: driverName !== 'all' ? driverName : 'all',
+          rider_code: riderCode !== 'all' ? riderCode : 'all',
         }
       });
 
@@ -42,7 +38,7 @@ const ProductDetailsScreen = ({ route }) => {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [sellerName, driverName, pickupStatus]);
+  }, [sellerName, riderCode]);
 
   const handleImagePress = (product) => {
     setSelectedProduct(product);
@@ -114,7 +110,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {driverName === 'all' ? (
+      {riderCode === 'all' ? (
         <>
           <View style={styles.headerContainer}>
             <Text style={styles.header}>Combined List</Text>
@@ -163,40 +159,26 @@ const ProductDetailsScreen = ({ route }) => {
         </Swiper>
       )}
 
-       {selectedProduct && (
-        <Modal
-          visible={modalVisible}
-          transparent={true}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <LazyImage source={{ uri: selectedProduct.image1 }} style={styles.fullScreenImage} />
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldModalText}>SKU: </Text>{selectedProduct.line_item_sku}
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedProduct && (
+              <>
+                <Text style={styles.modalText}>SKU: {selectedProduct.line_item_sku}</Text>
+                <Text style={styles.modalText}>Name: {selectedProduct.line_item_name}</Text>
+                <Text style={styles.modalText}>Price: ₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}</Text>
+                <Text style={styles.modalText}>Quantity: {selectedProduct.total_item_quantity}</Text>
+                <Text style={[styles.pickupStatusText, { color: selectedProduct.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
+                  {selectedProduct.Pickup_Status}
                 </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldModalText}>Name: </Text>{selectedProduct.line_item_name}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldModalText}>Price: </Text>₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
-                </Text>
-                <Text style={[styles.statusText, selectedProduct["Pickup Status"] === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
-                  {selectedProduct["Pickup Status"]}
-                </Text>
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-      )}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -265,33 +247,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   pickupStatusText: {
-    marginTop: 2,
+    marginTop: 10,
     fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
+    width: '80%',
     alignItems: 'center',
-    margin: 20,
-  },
-  fullScreenImage: {
-    width: 300,
-    height: 300,
-    borderRadius: 10,
-    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
   },
   modalText: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  boldModalText: {
-    fontWeight: 'bold',
+    fontSize: 16,
+    marginVertical: 5,
   },
 });
 

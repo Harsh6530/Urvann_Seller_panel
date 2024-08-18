@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cors());
 
 // MongoDB connection URI for UrvannRiderApp database
-const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
+const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannRiderApp?retryWrites=true&w=majority&appName=UrvannGenie';
 
 // Connect to MongoDB for UrvannRiderApp database
 mongoose.connect(MONGODB_URI)
@@ -122,58 +122,98 @@ app.get('/api/sellers', async (req, res) => {
   }
 });
 
-// GET /api/sellers/:seller_name/riders
-app.get('/api/sellers/:seller_name/riders', async (req, res) => {
-  const { seller_name } = req.params;
+// // GET /api/sellers/:seller_name/riders
+// app.get('/api/sellers/:seller_name/riders', async (req, res) => {
+//   const { seller_name } = req.params;
 
-  try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+//   try {
+//     const collections = await routeConnection.db.listCollections().toArray();
+//     let matchingCollectionName;
 
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+//     // Check each collection for the seller's name
+//     for (const collection of collections) {
+//       const currentCollection = routeConnection.collection(collection.name);
+//       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+//       if (foundSeller) {
+//         matchingCollectionName = collection.name;
+//         break;
+//       }
+//     }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+//     if (!matchingCollectionName) {
+//       return res.status(404).json({ message: 'Seller not found in any collection' });
+//     }
 
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
-    const riders = await Route.find({ seller_name }).distinct('Driver Name').lean();
+//     // Dynamically set the collection for the Route model
+//     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+//     const riders = await Route.find({ seller_name }).distinct('Driver Name').lean();
 
-    const ridersWithCounts = await Promise.all(riders.map(async (riderCode) => {
-      const productCount = await Route.aggregate([
-        { $match: { seller_name, 'Driver Name': riderCode } },
-        { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
-      ]);
+//     const ridersWithCounts = await Promise.all(riders.map(async (riderCode) => {
+//       const productCount = await Route.aggregate([
+//         { $match: { seller_name, 'Driver Name': riderCode } },
+//         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+//       ]);
 
-      // Add logging to see the results of the aggregation
-      console.log(`Rider: ${riderCode}, Product Count: `, productCount);
+//       return {
+//         riderCode,
+//         productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
+//       };
+//     }));
 
-      return {
-        riderCode,
-        productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
-      };
-    }));
-
-    res.json(ridersWithCounts);
-  } catch (error) {
-    console.error('Error fetching riders:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+//     res.json(ridersWithCounts);
+//   } catch (error) {
+//     console.error('Error fetching riders:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
 
 
-// GET /api/sellers/:seller_name/all
+// // GET /api/sellers/:seller_name/all
+// app.get('/api/sellers/:seller_name/all', async (req, res) => {
+//   const { seller_name } = req.params;
+
+//   try {
+//     const collections = await routeConnection.db.listCollections().toArray();
+//     let matchingCollectionName;
+
+//     // Check each collection for the seller's name
+//     for (const collection of collections) {
+//       const currentCollection = routeConnection.collection(collection.name);
+//       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+//       if (foundSeller) {
+//         matchingCollectionName = collection.name;
+//         break;
+//       }
+//     }
+
+//     if (!matchingCollectionName) {
+//       return res.status(404).json({ message: 'Seller not found in any collection' });
+//     }
+
+//     // Dynamically set the collection for the Route model
+//     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+//     // Fetch products for the seller
+//     const products = await Route.find({ seller_name }).lean();
+
+//     // Calculate total quantity of products for the seller
+//     const productCount = await Route.aggregate([
+//       { $match: { seller_name } },
+//       { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+//     ]);
+//     const totalProductCount = productCount.length > 0 ? productCount[0].totalQuantity : 0;
+
+//     // Send response with total product count and products
+//     res.json({ totalProductCount, products });
+//   } catch (error) {
+//     console.error(`Error fetching all products for ${seller_name}:`, error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+// GET /api/sellers/:seller_name/all?pickup_status=picked
 app.get('/api/sellers/:seller_name/all', async (req, res) => {
   const { seller_name } = req.params;
+  const { pickup_status } = req.query; // pickup_status is optional
 
   try {
     const collections = await routeConnection.db.listCollections().toArray();
@@ -195,12 +235,19 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
 
     // Dynamically set the collection for the Route model
     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
-    // Fetch products for the seller
-    const products = await Route.find({ seller_name }).lean();
 
-    // Calculate total quantity of products for the seller
+    // Build the query object based on the pickup_status query parameter
+    let query = { seller_name };
+    if (pickup_status) {
+      query.Pickup_Status = pickup_status === 'picked' ? 'Picked' : 'Not Picked';
+    }
+
+    // Fetch products for the seller based on the query
+    const products = await Route.find(query).lean();
+
+    // Calculate total quantity of products for the seller based on the query
     const productCount = await Route.aggregate([
-      { $match: { seller_name } },
+      { $match: query },
       { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
     ]);
     const totalProductCount = productCount.length > 0 ? productCount[0].totalQuantity : 0;
@@ -208,107 +255,164 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
     // Send response with total product count and products
     res.json({ totalProductCount, products });
   } catch (error) {
-    console.error(`Error fetching all products for ${seller_name}:`, error);
+    console.error(`Error fetching products for ${seller_name} with pickup status '${pickup_status}':`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
+
 // GET /api/sellers/:seller_name/drivers/not-picked
-// app.get('/api/sellers/:seller_name/drivers/not-picked', async (req, res) => {
-//   const { seller_name } = req.params;
+app.get('/api/sellers/:seller_name/drivers/not-picked', async (req, res) => {
+  const { seller_name } = req.params;
 
-//   try {
-//     const collections = await routeConnection.db.listCollections().toArray();
-//     let matchingCollectionName;
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
 
-//     // Check each collection for the seller's name
-//     for (const collection of collections) {
-//       const currentCollection = routeConnection.collection(collection.name);
-//       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-//       if (foundSeller) {
-//         matchingCollectionName = collection.name;
-//         break;
-//       }
-//     }
+    // Check each collection for the seller's name
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
 
-//     if (!matchingCollectionName) {
-//       return res.status(404).json({ message: 'Seller not found in any collection' });
-//     }
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
 
-//     // Dynamically set the collection for the Route model
-//     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // Dynamically set the collection for the Route model
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // Fetch all unique driver names for the seller where Pickup_Status is "Not Picked"
+    const drivers = await Route.distinct('Driver Name', { seller_name, Pickup_Status: 'Not Picked' });
 
-//     // Fetch all unique driver names for the seller where Pickup_Status is "Not Picked"
-//     const drivers = await Route.distinct('Driver Name', { seller_name, Pickup_Status: 'Not Picked' });
+    // If you need to get the count of "Not Picked" products per driver
+    const driversWithCounts = await Promise.all(drivers.map(async (driverName) => {
+      const productCount = await Route.aggregate([
+        { $match: { seller_name, 'Driver Name': driverName, Pickup_Status: 'Not Picked' } },
+        { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+      ]);
 
-//     // If you need to get the count of "Not Picked" products per driver
-//     const driversWithCounts = await Promise.all(drivers.map(async (driverName) => {
-//       const productCount = await Route.aggregate([
-//         { $match: { seller_name, 'Driver Name': driverName, Pickup_Status: 'Not Picked' } },
-//         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
-//       ]);
+      return {
+        driverName,
+        productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
+      };
+    }));
 
-//       return {
-//         driverName,
-//         productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
-//       };
-//     }));
+    // Send response with the list of drivers and their product counts
+    res.json(driversWithCounts);
+  } catch (error) {
+    console.error(`Error fetching drivers with not picked products for seller ${seller_name}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
-//     // Send response with the list of drivers and their product counts
-//     res.json(driversWithCounts);
-//   } catch (error) {
-//     console.error(`Error fetching drivers with not picked products for seller ${seller_name}:`, error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
 
-// // GET /api/sellers/:seller_name/drivers/picked
-// app.get('/api/sellers/:seller_name/drivers/picked', async (req, res) => {
-//   const { seller_name } = req.params;
+app.get('/api/sellers/:seller_name/drivers/picked', async (req, res) => {
+  const { seller_name } = req.params;
 
-//   try {
-//     const collections = await routeConnection.db.listCollections().toArray();
-//     let matchingCollectionName;
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
 
-//     // Check each collection for the seller's name
-//     for (const collection of collections) {
-//       const currentCollection = routeConnection.collection(collection.name);
-//       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-//       if (foundSeller) {
-//         matchingCollectionName = collection.name;
-//         break;
-//       }
-//     }
+    // Check each collection for the seller's name
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
 
-//     if (!matchingCollectionName) {
-//       return res.status(404).json({ message: 'Seller not found in any collection' });
-//     }
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
 
-//     // Dynamically set the collection for the Route model
-//     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
-//     // Fetch all unique driver names for the seller where Pickup_Status is "Not Picked"
-//     const drivers = await Route.distinct('Driver Name', { seller_name, Pickup_Status: 'Picked' });
+    // Dynamically set the collection for the Route model
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    
+    // Fetch all unique driver names for the seller where Pickup_Status is "Picked"
+    const drivers = await Route.distinct('Driver Name', { seller_name, Pickup_Status: 'Picked' });
 
-//     // If you need to get the count of "Not Picked" products per driver
-//     const driversWithCounts = await Promise.all(drivers.map(async (driverName) => {
-//       const productCount = await Route.aggregate([
-//         { $match: { seller_name, 'Driver Name': driverName, Pickup_Status: 'Picked' } },
-//         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
-//       ]);
+    // If you need to get the count of "Picked" products per driver
+    const driversWithCounts = await Promise.all(drivers.map(async (driverName) => {
+      const productCount = await Route.aggregate([
+        { $match: { seller_name, 'Driver Name': driverName, Pickup_Status: 'Picked' } },
+        { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+      ]);
 
-//       return {
-//         driverName,
-//         productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
-//       };
-//     }));
+      //console.log(`Driver: ${driverName}, Product Count:`, productCount); // Debugging line
 
-//     // Send response with the list of drivers and their product counts
-//     res.json(driversWithCounts);
-//   } catch (error) {
-//     console.error(`Error fetching drivers with not picked products for seller ${seller_name}:`, error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
+      return {
+        driverName,
+        productCount: productCount.length > 0 ? productCount[0].totalQuantity : 0
+      };
+    }));
+
+    // Log the final result
+    console.log('Drivers with counts:', driversWithCounts);
+
+    // Send response with the list of drivers and their product counts
+    res.json(driversWithCounts);
+  } catch (error) {
+    console.error(`Error fetching drivers with picked products for seller ${seller_name}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
+  const { seller_name } = req.params;
+  console.log(`Fetching riders for seller: ${seller_name}`);
+
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
+
+    // Check each collection for the seller's name
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
+
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
+
+    // Dynamically set the collection for the Route model
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+
+    // Find the distinct riders (drivers) for the given seller and order types
+    const riders = await Route.find({
+      seller_name,
+      metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] }
+    }).distinct('Driver Name');
+
+    const ridersWithCounts = await Promise.all(riders.map(async (driverName) => {
+      const productCount = await Route.aggregate([
+        { $match: { 'Driver Name': driverName, seller_name, metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] } } },
+        { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+      ]);
+
+      return {
+        driverName,
+        productCount: productCount[0] ? productCount[0].totalQuantity : 0
+      };
+    }));
+
+    //console.log('Riders with counts for seller:', ridersWithCounts);
+    res.json(ridersWithCounts);
+  } catch (error) {
+    console.error(`Error fetching riders and counts for seller ${sellerName}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 
 // app.get('/api/products', async (req, res) => {
@@ -381,13 +485,81 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
 //   }
 // });
 
-app.get('/api/products', async (req, res) => {
+// app.get('/api/products', async (req, res) => {
+//   const { seller_name, rider_code } = req.query;
+//   try {
+//     const collections = await routeConnection.db.listCollections().toArray();
+//     let matchingCollectionName;
+
+//     // Check each collection for the seller's name
+//     for (const collection of collections) {
+//       const currentCollection = routeConnection.collection(collection.name);
+//       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+//       if (foundSeller) {
+//         matchingCollectionName = collection.name;
+//         break;
+//       }
+//     }
+
+//     if (!matchingCollectionName) {
+//       return res.status(404).json({ message: 'Seller not found in any collection' });
+//     }
+
+//     // Dynamically set the collection for the Route model
+//     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    
+//     let query = { seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } };
+//     if (rider_code !== 'all') {
+//       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
+//     }
+
+//     const filteredData = await Route.find(query)
+//       .select('FINAL line_item_sku line_item_name total_item_quantity') // Ensure fields match the document
+//       //.sort({ GMV: -1 }) // Sort by GMV in decreasing order
+//       .lean();
+
+//     const skuList = filteredData.map(data => data.line_item_sku);
+
+//     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
+//     const photoMap = {};
+//     photos.forEach(photo => {
+//       photoMap[photo.sku] = photo.image_url;
+//     });
+
+//     const mergedData = filteredData.map(data => ({
+//       ...data,
+//       image1: photoMap[data.line_item_sku] || null
+//     }));
+
+//     const orderCodeQuantities = mergedData.reduce((acc, data) => {
+//       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
+//       return acc;
+//     }, {});
+
+//     const products = mergedData.map(data => ({
+//       FINAL: data.FINAL,
+//       line_item_sku: data.line_item_sku,
+//       line_item_name: data.line_item_name,
+//       image1: data.image1,
+//       total_item_quantity: data.total_item_quantity
+//     }));
+
+//     console.log('Products:', products); // Log the products to verify data
+
+//     res.json({ orderCodeQuantities, products });
+//   } catch (error) {
+//     console.error('Error fetching products:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+app.get('/api/products/not-picked', async (req, res) => {
   const { seller_name, rider_code } = req.query;
+  
   try {
     const collections = await routeConnection.db.listCollections().toArray();
     let matchingCollectionName;
 
-    // Check each collection for the seller's name
     for (const collection of collections) {
       const currentCollection = routeConnection.collection(collection.name);
       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
@@ -401,21 +573,25 @@ app.get('/api/products', async (req, res) => {
       return res.status(404).json({ message: 'Seller not found in any collection' });
     }
 
-    // Dynamically set the collection for the Route model
     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
-    
-    let query = { seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } };
+
+    const query = { 
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
+      Pickup_Status: 'Not Picked'
+    };
+
     if (rider_code !== 'all') {
       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
     }
 
     const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity') // Ensure fields match the document
-      //.sort({ GMV: -1 }) // Sort by GMV in decreasing order
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status') 
+      .sort({ GMV: -1 })
       .lean();
 
-    const skuList = filteredData.map(data => data.line_item_sku);
+    //console.log('Filtered Data:', filteredData); // Debugging
 
+    const skuList = filteredData.map(data => data.line_item_sku);
     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
     const photoMap = {};
     photos.forEach(photo => {
@@ -424,39 +600,201 @@ app.get('/api/products', async (req, res) => {
 
     const mergedData = filteredData.map(data => ({
       ...data,
-      image1: photoMap[data.line_item_sku] || null
+      image1: photoMap[data.line_item_sku] || null,
+      line_item_price: Number(data.line_item_price) // Ensure it's a number
     }));
+
+    //console.log('Merged Data:', mergedData); // Debugging
 
     const orderCodeQuantities = mergedData.reduce((acc, data) => {
       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
 
+    //console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
+
     const products = mergedData.map(data => ({
       FINAL: data.FINAL,
       line_item_sku: data.line_item_sku,
       line_item_name: data.line_item_name,
       image1: data.image1,
-      total_item_quantity: data.total_item_quantity
+      total_item_quantity: data.total_item_quantity,
+      line_item_price: data.line_item_price,
+      Pickup_Status: data.Pickup_Status,
+      GMV: data.GMV
     }));
-
-    console.log('Products:', products); // Log the products to verify data
 
     res.json({ orderCodeQuantities, products });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching picked products:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// app.get('/api/products/picked', async (req, res) => {
-//   const { seller_name, rider_code } = req.query;
+app.get('/api/products/picked', async (req, res) => {
+  const { seller_name, rider_code } = req.query;
   
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
+
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
+
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
+
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+
+    const query = { 
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
+      Pickup_Status: 'Picked'
+    };
+
+    if (rider_code !== 'all') {
+      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
+    }
+
+    const filteredData = await Route.find(query)
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status') 
+      .sort({ GMV: -1 })
+      .lean();
+
+    //console.log('Filtered Data:', filteredData); // Debugging
+
+    const skuList = filteredData.map(data => data.line_item_sku);
+    const photos = await Photo.find({ sku: { $in: skuList } }).lean();
+    const photoMap = {};
+    photos.forEach(photo => {
+      photoMap[photo.sku] = photo.image_url;
+    });
+
+    const mergedData = filteredData.map(data => ({
+      ...data,
+      image1: photoMap[data.line_item_sku] || null,
+      line_item_price: Number(data.line_item_price) // Ensure it's a number
+    }));
+
+    //console.log('Merged Data:', mergedData); // Debugging
+
+    const orderCodeQuantities = mergedData.reduce((acc, data) => {
+      acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
+      return acc;
+    }, {});
+
+    //console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
+
+    const products = mergedData.map(data => ({
+      FINAL: data.FINAL,
+      line_item_sku: data.line_item_sku,
+      line_item_name: data.line_item_name,
+      image1: data.image1,
+      total_item_quantity: data.total_item_quantity,
+      line_item_price: data.line_item_price,
+      Pickup_Status: data.Pickup_Status,
+      GMV: data.GMV
+    }));
+
+    res.json({ orderCodeQuantities, products });
+  } catch (error) {
+    console.error('Error fetching picked products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/reverse-pickup-products', async (req, res) => {
+  const { seller_name, rider_code } = req.query;
+  
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
+
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
+
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
+
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+
+    const query = { 
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
+      metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] }
+    };
+
+    if (rider_code !== 'all') {
+      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
+    }
+
+    const filteredData = await Route.find(query)
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status') 
+      .sort({ GMV: -1 })
+      .lean();
+
+    //console.log('Filtered Data:', filteredData); // Debugging
+
+    const skuList = filteredData.map(data => data.line_item_sku);
+    const photos = await Photo.find({ sku: { $in: skuList } }).lean();
+    const photoMap = {};
+    photos.forEach(photo => {
+      photoMap[photo.sku] = photo.image_url;
+    });
+
+    const mergedData = filteredData.map(data => ({
+      ...data,
+      image1: photoMap[data.line_item_sku] || null,
+      line_item_price: Number(data.line_item_price) // Ensure it's a number
+    }));
+
+    //console.log('Merged Data:', mergedData); // Debugging
+
+    const orderCodeQuantities = mergedData.reduce((acc, data) => {
+      acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
+      return acc;
+    }, {});
+
+    //console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
+
+    const products = mergedData.map(data => ({
+      FINAL: data.FINAL,
+      line_item_sku: data.line_item_sku,
+      line_item_name: data.line_item_name,
+      image1: data.image1,
+      total_item_quantity: data.total_item_quantity,
+      line_item_price: data.line_item_price,
+      Delivery_Status: data.Delivery_Status,
+      metafield_order_type: data.metafield_order_type,
+      GMV: data.GMV
+    }));
+
+    res.json({ orderCodeQuantities, products });
+  } catch (error) {
+    console.error('Error fetching picked products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// app.get('/api/reverse-pickup-products', async (req, res) => {
+//   const { seller_name, driverName } = req.query;
+
 //   try {
 //     const collections = await routeConnection.db.listCollections().toArray();
 //     let matchingCollectionName;
 
-//     // Check each collection for the seller's name
 //     for (const collection of collections) {
 //       const currentCollection = routeConnection.collection(collection.name);
 //       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
@@ -470,133 +808,54 @@ app.get('/api/products', async (req, res) => {
 //       return res.status(404).json({ message: 'Seller not found in any collection' });
 //     }
 
-//     // Dynamically set the collection for the Route model
 //     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
-//     let query = { 
-//       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-//       Pickup_Status: 'Picked' // Filter for picked products
+//     // Build the query to filter based on seller name and driver name
+//     let query = {
+//       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') }, // Case-insensitive match for seller name
+//       "Driver Name": { $regex: new RegExp(`^${driverName}$`, 'i') }, // Case-insensitive match for driver name
+//       metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] } // Filter based on order types
 //     };
-    
-//     if (rider_code !== 'all') {
-//       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
-//     }
 
+//     // Find matching documents from the Route collection
 //     const filteredData = await Route.find(query)
-//       .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status') 
-//       .sort({ GMV: -1 })
+//       .select('FINAL line_item_sku line_item_name total_item_quantity Pickup_Status')
 //       .lean();
 
+//     // Extract SKUs to fetch associated photos
 //     const skuList = filteredData.map(data => data.line_item_sku);
-
 //     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
+
+//     // Map the photos to their respective SKUs
 //     const photoMap = {};
 //     photos.forEach(photo => {
 //       photoMap[photo.sku] = photo.image_url;
 //     });
 
-//     const mergedData = filteredData.map(data => ({
-//       ...data,
-//       image1: photoMap[data.line_item_sku] || null
-//     }));
-
-//     const orderCodeQuantities = mergedData.reduce((acc, data) => {
-//       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
-//       return acc;
-//     }, {});
-
-//     const products = mergedData.map(data => ({
+//     // Map the filtered data to include photo URLs and other details
+//     const products = filteredData.map(data => ({
 //       FINAL: data.FINAL,
 //       line_item_sku: data.line_item_sku,
 //       line_item_name: data.line_item_name,
-//       image1: data.image1,
+//       image1: photoMap[data.line_item_sku] || null, // Default to null if no image is found
 //       total_item_quantity: data.total_item_quantity,
-//       line_item_price: data.line_item_price,
-//       Pickup_Status: data.Pickup_Status,
-//       GMV: data.GMV
+//       "Pickup Status": data.Pickup_Status
 //     }));
 
+//     // Calculate total quantities by order code (FINAL)
+//     const orderCodeQuantities = products.reduce((acc, product) => {
+//       acc[product.FINAL] = (acc[product.FINAL] || 0) + product.total_item_quantity;
+//       return acc;
+//     }, {});
+
+//     // Return the response as a JSON object
 //     res.json({ orderCodeQuantities, products });
 //   } catch (error) {
-//     console.error('Error fetching picked products:', error);
+//     console.error('Error fetching reverse pickup products:', error);
 //     res.status(500).json({ message: 'Internal server error' });
 //   }
 // });
 
-// app.get('/api/products/not-picked', async (req, res) => {
-//   const { seller_name, rider_code } = req.query;
-//   try {
-//     // Fetch all collection names in UrvannHubRouteData
-//     const collections = await routeConnection.db.listCollections().toArray();
-//     let matchingCollectionName;
-
-//     // Check each collection for the seller's name
-//     for (const collection of collections) {
-//       const currentCollection = routeConnection.collection(collection.name);
-//       const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-//       if (foundSeller) {
-//         matchingCollectionName = collection.name;
-//         break;
-//       }
-//     }
-
-//     if (!matchingCollectionName) {
-//       return res.status(404).json({ message: 'Seller not found in any collection' });
-//     }
-
-//     // Dynamically set the collection for the Route model
-//     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
-
-    
-//     let query = { 
-//       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-//       Pickup_Status: 'Not Picked' // Filter for not picked products
-//     };
-    
-//     if (rider_code !== 'all') {
-//       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
-//     }
-
-//     const filteredData = await Route.find(query)
-//       .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status') 
-//       .sort({ GMV: -1 })
-//       .lean();
-
-//     const skuList = filteredData.map(data => data.line_item_sku);
-
-//     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
-//     const photoMap = {};
-//     photos.forEach(photo => {
-//       photoMap[photo.sku] = photo.image_url;
-//     });
-
-//     const mergedData = filteredData.map(data => ({
-//       ...data,
-//       image1: photoMap[data.line_item_sku] || null
-//     }));
-
-//     const orderCodeQuantities = mergedData.reduce((acc, data) => {
-//       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
-//       return acc;
-//     }, {});
-
-//     const products = mergedData.map(data => ({
-//       FINAL: data.FINAL,
-//       line_item_sku: data.line_item_sku,
-//       line_item_name: data.line_item_name,
-//       image1: data.image1,
-//       total_item_quantity: data.total_item_quantity,
-//       line_item_price: data.line_item_price,
-//       Pickup_Status: data.Pickup_Status,
-//       GMV: data.GMV
-//     }));
-
-//     res.json({ orderCodeQuantities, products });
-//   } catch (error) {
-//     console.error('Error fetching not picked products:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
 
 
 app.get('/api/data/:sellerName', async (req, res) => {

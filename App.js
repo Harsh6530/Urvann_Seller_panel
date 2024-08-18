@@ -7,6 +7,7 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import RiderCodesScreen from './screens/RiderCodesScreen';
+import ReverseProductDetailsScreen from './screens/ReverseProductDetailsScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,7 +31,7 @@ const App = () => {
         <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} options={{ title: 'Product Details' }} />
         <Stack.Screen name="RiderCodes" component={RiderCodesScreen} options={{ title: 'Rider Name'}}/>
-
+        <Stack.Screen name="ReverseProductDetails" component={ReverseProductDetailsScreen} options={{ title: 'Reverse Product Details' }} />
 
       </Stack.Navigator>
     </NavigationContainer>

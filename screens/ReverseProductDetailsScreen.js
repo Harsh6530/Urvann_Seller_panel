@@ -5,7 +5,7 @@ import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
 
 const ProductDetailsScreen = ({ route }) => {
-  const { sellerName, driverName, pickupStatus } = route.params;  // Accept the new parameter
+  const { sellerName, driverName, pickupStatus } = route.params;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
@@ -14,11 +14,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const endpoint = pickupStatus === 'Picked' 
-        ? 'http://10.5.16.225:5001/api/products/picked' 
-        : 'http://10.5.16.225:5001/api/products/not-picked';
-
-      const response = await axios.get(endpoint, {
+      const response = await axios.get('http://10.5.16.225:5001/api/reverse-pickup-products', {
         params: {
           seller_name: sellerName,
           rider_code: driverName !== 'all' ? driverName : 'all',
@@ -50,7 +46,7 @@ const ProductDetailsScreen = ({ route }) => {
   };
 
   const renderProduct = ({ item }) => {
-    const pickupStatusColor = item.Pickup_Status === 'Picked' ? 'green' : 'red';
+    const deliveryStatusColor = item.Delivery_Status === 'Delivered' ? 'green' : 'red';
 
     return (
       <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
@@ -69,8 +65,8 @@ const ProductDetailsScreen = ({ route }) => {
             <Text>
               <Text style={styles.boldText}>Quantity: </Text>{item.total_item_quantity}
             </Text>
-            <Text style={[styles.pickupStatusText, { color: pickupStatusColor }]}>
-              {item.Pickup_Status}
+            <Text style={[styles.deliveryStatusText, { color: deliveryStatusColor }]}>
+              {item.Delivery_Status}
             </Text>
           </View>
         </View>
@@ -96,7 +92,7 @@ const ProductDetailsScreen = ({ route }) => {
       };
     }
     combinedProducts[product.line_item_sku].total_item_quantity += product.total_item_quantity;
-    combinedProducts[product.line_item_sku].Pickup_Status = ''; // Ensure pickup status is empty in combined list
+    combinedProducts[product.line_item_sku].Delivery_Status = ''; // Ensure delivery status is empty in combined list
   });
 
   // Convert combined products object to array
@@ -151,8 +147,8 @@ const ProductDetailsScreen = ({ route }) => {
                       <Text>
                         <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
                       </Text>
-                      <Text style={[styles.pickupStatusText, { color: product.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
-                        {product.Pickup_Status}
+                      <Text style={[styles.deliveryStatusText, { color: product.Delivery_Status === 'Delivered' ? 'green' : 'red' }]}>
+                        {product.Delivery_Status}
                       </Text>
                     </View>
                   </View>
@@ -163,7 +159,7 @@ const ProductDetailsScreen = ({ route }) => {
         </Swiper>
       )}
 
-       {selectedProduct && (
+      {selectedProduct && (
         <Modal
           visible={modalVisible}
           transparent={true}
@@ -185,8 +181,8 @@ const ProductDetailsScreen = ({ route }) => {
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
                 </Text>
-                <Text style={[styles.statusText, selectedProduct["Pickup Status"] === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
-                  {selectedProduct["Pickup Status"]}
+                <Text style={[styles.statusText, selectedProduct["Delivery Status"] === "Delivered" ? styles.deliveredStatus : styles.notDeliveredStatus]}>
+                  {selectedProduct["Delivery Status"]}
                 </Text>
               </View>
             </View>
@@ -196,7 +192,6 @@ const ProductDetailsScreen = ({ route }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -253,9 +248,8 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    resizeMode: 'cover',
-    marginRight: 15,
     borderRadius: 10,
+    marginRight: 15,
   },
   textContainer: {
     flex: 1,
@@ -264,27 +258,31 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: 'bold',
   },
-  pickupStatusText: {
-    marginTop: 2,
+  deliveryStatusText: {
+    marginTop: 5,
     fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
+    backgroundColor: '#ffffff',
     margin: 20,
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
   fullScreenImage: {
-    width: 300,
+    width: '100%',
     height: 300,
-    borderRadius: 10,
     marginBottom: 20,
+    borderRadius: 10,
   },
   modalText: {
     fontSize: 18,
@@ -292,6 +290,16 @@ const styles = StyleSheet.create({
   },
   boldModalText: {
     fontWeight: 'bold',
+  },
+  statusText: {
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  deliveredStatus: {
+    color: 'green',
+  },
+  notDeliveredStatus: {
+    color: 'red',
   },
 });
 
