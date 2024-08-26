@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { Types } = mongoose; 
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
@@ -9,12 +10,14 @@ const DeliveryUpdate = require('./models/deliveryUpdate');
 const Summary = require('./models/Summary');
 const Payable = require('./models/Payable');
 const Refund = require('./models/Refund');
+const Product = require('./models/Product');
+const Review = require('./models/Review');
 
 app.use(express.json());
 app.use(cors());
 
 // MongoDB connection URI for UrvannRiderApp database
-const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannRiderApp?retryWrites=true&w=majority&appName=UrvannGenie';
+const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
 
 // Connect to MongoDB for UrvannRiderApp database
 mongoose.connect(MONGODB_URI)
@@ -414,6 +417,85 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
   }
 });
 
+app.get('/api/products/:seller_name', async (req, res) => {
+  const { seller_name } = req.params;
+  
+  try {
+    const products = await Product.find({ seller_name: seller_name });
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const updatedData = req.body;
+
+    const updatedProduct = await Product.findByIdAndUpdate(productId, updatedData, { new: true });
+    
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET endpoint to fetch reviews for a specific seller
+app.get('/api/reviews/:sellerName', async (req, res) => {
+  const { sellerName } = req.params;
+
+  try {
+    const reviews = await Review.find({ seller_name: sellerName });
+    res.json(reviews);
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+app.put('/api/reviews/:id', async (req, res) => {
+  const reviewId = req.params.id;
+
+  if (!Types.ObjectId.isValid(reviewId)) {
+      return res.status(400).json({ message: 'Invalid review ID' });
+  }
+
+  try {
+      const updatedData = req.body;
+
+      if (updatedData.Available !== undefined) {
+          updatedData.Available = updatedData.Available === 'yes' ? 1 : 0;
+      }
+
+      // Ensure the correct field name is being used
+      if (updatedData["Suggested Price"] !== undefined) {
+          updatedData["Suggested Price"] = parseFloat(updatedData["Suggested Price"]) || 0;
+      }
+
+      if (updatedData["Current Price"] !== undefined) {
+          updatedData["Current Price"] = parseFloat(updatedData["Current Price"]) || 0;
+      }
+
+      const updatedReview = await Review.findByIdAndUpdate(reviewId, updatedData, { new: true });
+
+      if (!updatedReview) {
+          return res.status(404).json({ message: 'Review not found' });
+      }
+
+      res.json(updatedReview);
+  } catch (error) {
+      console.error('Error updating review:', error.message);
+      res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // app.get('/api/products', async (req, res) => {
 //   const { seller_name, rider_code } = req.query;
