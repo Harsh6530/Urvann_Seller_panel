@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import ShootSectionScreen from './shootSectionScreen';
+import ShootSectionScreen from './ShootSectionScreen';
 import ReviewSectionScreen from './ReviewSectionScreen';
 const Tab = createMaterialTopTabNavigator();
 
