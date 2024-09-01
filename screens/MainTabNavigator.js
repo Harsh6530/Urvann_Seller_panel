@@ -3,7 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import PayoutScreen from './PayoutScreen';
 import DeliveryUpdatesScreen from './DeliveryUpdatesScreen';
-import PickupNavigator from './PickupNavigator'; // Import the correctly set up PickupNavigator
+import PickupNavigator from './PickupNavigator';
+import ProductDetailsNavigator from './ProductDetailsNavigator'; // Import the correctly set up PickupNavigator
 import { TouchableOpacity, Text, Alert } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,6 +43,9 @@ const MainTabNavigator = ({ navigation, route }) => {
           } else if (route.name === 'Delivery Updates') {
             iconName = 'clipboard-list';
             return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+          } else if (route.name === 'Product Details') {
+            iconName = 'document-text'; // Choose an icon for Product Details
+            return <Ionicons name={iconName} size={size} color={color} />;
           }
         },
         tabBarActiveTintColor: '#287238',
@@ -71,7 +75,9 @@ const MainTabNavigator = ({ navigation, route }) => {
       <Tab.Screen name="Payout" component={PayoutScreen} initialParams={{ sellerName }} />
       <Tab.Screen name="Pickup" component={PickupNavigator} initialParams={{ sellerName }} /> 
       <Tab.Screen name="Delivery Updates" component={DeliveryUpdatesScreen} initialParams={{ sellerName }} />
+      <Tab.Screen name="Product Details" component={ProductDetailsNavigator} initialParams={{ sellerName }} />
     </Tab.Navigator>
   );
 };
+
 export default MainTabNavigator;
