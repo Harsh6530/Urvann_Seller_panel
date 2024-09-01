@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, Button, ActivityIndicator, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import axios from 'axios';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const ReviewSectionScreen = ({ navigation, route }) => {
   const { sellerName } = route.params; // Get sellerName from route params
@@ -19,7 +20,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(`http://10.112.104.99:5001/api/reviews/${sellerName}`);
+        const response = await axios.get(`http://10.112.104.100:5001/api/reviews/${sellerName}`);
         setReviews(response.data);
         if (response.data.length > 0) {
           setSelectedIndex(0);
@@ -74,7 +75,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       };
   
       // Send the update request to the server
-      const response = await axios.put(`http://10.112.104.99:5001/api/reviews/${reviewId}`, updatedReviewData);
+      const response = await axios.put(`http://10.112.104.100:5001/api/reviews/${reviewId}`, updatedReviewData);
   
       // Update the local reviews array with the updated review data
       const updatedReviews = [...reviews];
@@ -89,7 +90,8 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     }
   };
   
-  const handleNext = () => {
+  const handleNext = async () => {
+    await saveData(); // Save the current review data before navigating
     if (selectedIndex < reviews.length - 1) {
       setSelectedIndex(selectedIndex + 1);
       updateFormData(reviews[selectedIndex + 1]);
@@ -102,16 +104,6 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       updateFormData(reviews[selectedIndex - 1]);
     }
   };
-  
-  const handleSaveAndNavigate = (direction) => {
-    // This function now only handles navigation without saving data
-    if (direction === 'next') {
-      handleNext();
-    } else if (direction === 'previous') {
-      handlePrevious();
-    }
-  };
-  
 
   if (loading) {
     return (
@@ -132,157 +124,207 @@ const ReviewSectionScreen = ({ navigation, route }) => {
   const selectedReview = reviews[selectedIndex];
 
   return (
-    <View style={styles.container}>
-      {selectedReview && (
-        <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: selectedReview.image_url }} style={styles.productImage} />
-          </View>
-          <View style={styles.formContainer}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.name}
-              onChangeText={(text) => handleInputChange('name', text)}
-              placeholder="Enter name"
-              editable={false}
-            />
-
-            <Text style={styles.label}>SKU</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.sku}
-              onChangeText={(text) => handleInputChange('sku', text)}
-              placeholder="Enter SKU"
-              editable={false}
-            />
-
-            <Text style={styles.label}>Available</Text>
-            <Switch
-              value={formData.Available}
-              onValueChange={handleAvailableChange}
-            />
-
-            {formData.Available && (
-              <>
-                <Text style={styles.label}>Current Price</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.CurrentPrice ? formData.CurrentPrice.toString() : ''}
-                  onChangeText={(text) => handleInputChange('CurrentPrice', text)}
-                  placeholder="Enter current price"
-                  keyboardType="numeric"
-                />
-
-                <Text style={styles.label}>Suggested Price</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.SuggestedPrice ? formData.SuggestedPrice.toString() : ''}
-                  onChangeText={(text) => handleInputChange('SuggestedPrice', text)}
-                  placeholder="Enter suggested price"
-                  keyboardType="numeric"
-                />
-              </>
-            )}
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonPrevious]}
-                onPress={() => handleSaveAndNavigate('previous')}
-                disabled={selectedIndex === 0}
-              >
-                <Text style={styles.buttonText}>Previous</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonNext]}
-                onPress={() => handleSaveAndNavigate('next')}
-                disabled={selectedIndex === reviews.length - 1}
-              >
-                <Text style={styles.buttonText}>Next</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonSave]}
-                onPress={saveData}
-              >
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardShouldPersistTaps="handled" // Ensures taps are handled even when keyboard is open
+    >
+      <View style={styles.container}>
+        {selectedReview && (
+          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: selectedReview.image_url }} style={styles.productImage} />
             </View>
-          </View>
-        </ScrollView>
-      )}
-    </View>
+            <View style={styles.formContainer}>
+              <Text style={styles.label}>Name</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.name}
+                onChangeText={(text) => handleInputChange('name', text)}
+                placeholder="Enter name"
+                editable={false}
+              />
+
+              <View style={styles.rowContainer}>
+                <View style={styles.skuContainer}>
+                  <Text style={styles.label}>SKU</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.sku}
+                    onChangeText={(text) => handleInputChange('sku', text)}
+                    placeholder="Enter SKU"
+                    editable={false}
+                  />
+                </View>
+
+                <View style={styles.availableContainer}>
+                  <Text style={styles.label}>Available</Text>
+                  <Switch
+                    value={formData.Available}
+                    onValueChange={handleAvailableChange}
+                    trackColor={{ true: '#007bff', false: '#ccc' }} // Color when the switch is on/off
+                    thumbColor={formData.Available ? '#fff' : '#fff'} // Color of the switch thumb
+                  />
+                </View>
+              </View>
+
+              {formData.Available && (
+                <>
+                  <Text style={styles.label}>Current Seller Price</Text>
+                  <TextInput
+                    style={[styles.input, styles.currentPriceInput]}
+                    value={formData.CurrentPrice ? formData.CurrentPrice.toString() : ''}
+                    onChangeText={(text) => handleInputChange('CurrentPrice', text)}
+                    placeholder="Enter current price"
+                    keyboardType="numeric"
+                    editable={false} // Make this field non-editable
+                  />
+
+                  <Text style={styles.label}>New Seller Price</Text>
+                  <TextInput
+                    style={[styles.input, styles.suggestedPriceInput]}
+                    value={formData.SuggestedPrice ? formData.SuggestedPrice.toString() : ''}
+                    onChangeText={(text) => handleInputChange('SuggestedPrice', text)}
+                    placeholder="Enter suggested price"
+                    keyboardType="numeric"
+                  />
+                </>
+              )}
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonPrevious]}
+                  onPress={handlePrevious}
+                  disabled={selectedIndex === 0}
+                >
+                  <Text style={styles.buttonText}>Previous</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonNext]}
+                  onPress={handleNext}
+                  disabled={selectedIndex === reviews.length - 1}
+                >
+                  <Text style={styles.buttonText}>Next</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        )}
+      </View>
+    </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f4',
-    padding: 15,
+    backgroundColor: '#f5f5f5',
+    padding: 16,
   },
   scrollViewContainer: {
     flexGrow: 1,
+    paddingBottom: 24,
   },
   imageContainer: {
-    marginBottom: 20,
-    borderRadius: 10,
-    overflow: 'hidden',
-    elevation: 5,
+    alignItems: 'center',
+    marginBottom: 24,
   },
   productImage: {
-    width: '100%',
-    height: 200,
+    width: 250,
+    height: 250,
     resizeMode: 'cover',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   formContainer: {
-    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+    marginBottom: 24,
+    width: '100%', // Adjust form container width as needed
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontWeight: '600',
+    marginBottom: 8,
     color: '#333',
   },
   input: {
-    height: 40,
+    height: 30, // Reduced height for input boxes
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    backgroundColor: '#fafafa',
+    fontSize: 16,
+    color: '#333',
+  },
+  currentPriceInput: {
+    width: '100%', // Make the input field full width
+  },
+  suggestedPriceInput: {
+    width: '100%', // Make the input field full width
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 15,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
+  },
+  skuContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  availableContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
   },
   button: {
+    backgroundColor: '#007bff',
+    padding: 14,
+    borderRadius: 8,
     flex: 1,
-    borderRadius: 5,
-    paddingVertical: 10,
+    marginHorizontal: 8,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   buttonPrevious: {
-    backgroundColor: '#d9534f',
+    backgroundColor: '#6c757d',
   },
   buttonNext: {
-    backgroundColor: '#5bc0de',
-  },
-  buttonSave: {
-    backgroundColor: '#5cb85c',
+    backgroundColor: '#007bff',
   },
   buttonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
   },
   errorText: {
     color: 'red',
-    fontSize: 18,
     textAlign: 'center',
+    fontSize: 16,
   },
 });
 
 export default ReviewSectionScreen;
+
