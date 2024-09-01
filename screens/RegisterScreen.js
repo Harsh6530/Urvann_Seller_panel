@@ -15,7 +15,7 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post(`http://10.112.104.100:5001/api/register`, { username, password });
+      const response = await axios.post(`http://10.5.16.225:5001/api/register`, { username, password });
       if (response.status === 201) {
         Alert.alert(`Registration successful ${username}, You can now login.`);
         navigation.navigate('Login');

@@ -53,7 +53,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`http://10.112.104.100:5001/api/login`, { username, password });
+      const response = await axios.post(`http://10.5.16.225:5001/api/login`, { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
 
