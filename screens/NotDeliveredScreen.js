@@ -13,7 +13,7 @@ const NotDeliveredScreen = () => {
   useEffect(() => {
     if (sellerName) {
       // Fetch data from API
-      axios.get(`http://10.112.104.101:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
+      axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
         .then(response => {
           setRiders(response.data);
         })

@@ -20,7 +20,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(`http://10.112.104.101:5001/api/reviews/${sellerName}`);
+        const response = await axios.get(`http://10.117.4.182:5001/api/reviews/${sellerName}`);
         setReviews(response.data);
         if (response.data.length > 0) {
           setSelectedIndex(0);
@@ -75,7 +75,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       };
   
       // Send the update request to the server
-      const response = await axios.put(`http://10.112.104.101:5001/api/reviews/${reviewId}`, updatedReviewData);
+      const response = await axios.put(`http://10.117.4.182:5001/api/reviews/${reviewId}`, updatedReviewData);
   
       // Update the local reviews array with the updated review data
       const updatedReviews = [...reviews];

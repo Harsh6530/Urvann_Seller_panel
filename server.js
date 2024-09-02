@@ -701,7 +701,7 @@ app.put('/api/reviews/:id', async (req, res) => {
 //   }
 // });
 
-app.get('/api/products/not-picked', async (req, res) => {
+app.get('/api/not-picked-products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
   
   try {
@@ -779,9 +779,11 @@ app.get('/api/products/not-picked', async (req, res) => {
   }
 });
 
-app.get('/api/products/picked', async (req, res) => {
+app.get('/api/picked-products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
   
+  console.log('Query Params:', { seller_name, rider_code }); // Debugging
+
   try {
     const collections = await routeConnection.db.listCollections().toArray();
     let matchingCollectionName;
@@ -796,8 +798,11 @@ app.get('/api/products/picked', async (req, res) => {
     }
 
     if (!matchingCollectionName) {
+      console.log('Seller not found'); // Debugging
       return res.status(404).json({ message: 'Seller not found in any collection' });
     }
+
+    console.log('Matching Collection Name:', matchingCollectionName); // Debugging
 
     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
@@ -810,12 +815,14 @@ app.get('/api/products/picked', async (req, res) => {
       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
     }
 
+    console.log('Query:', query); // Debugging
+
     const filteredData = await Route.find(query)
       .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status') 
       .sort({ GMV: -1 })
       .lean();
 
-    //console.log('Filtered Data:', filteredData); // Debugging
+    console.log('Filtered Data:', filteredData); // Debugging
 
     const skuList = filteredData.map(data => data.line_item_sku);
     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
@@ -830,14 +837,14 @@ app.get('/api/products/picked', async (req, res) => {
       line_item_price: Number(data.line_item_price) // Ensure it's a number
     }));
 
-    //console.log('Merged Data:', mergedData); // Debugging
+    console.log('Merged Data:', mergedData); // Debugging
 
     const orderCodeQuantities = mergedData.reduce((acc, data) => {
       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
 
-    //console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
+    console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
 
     const products = mergedData.map(data => ({
       FINAL: data.FINAL,
@@ -856,6 +863,7 @@ app.get('/api/products/picked', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 app.get('/api/reverse-pickup-products-delivered', async (req, res) => {
   const { seller_name, rider_code } = req.query;

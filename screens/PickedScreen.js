@@ -11,7 +11,7 @@ const PickedScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/drivers/picked`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/picked`)
       .then(response => {
         console.log('Riders with counts:', response.data); // Log the response data
         setRidersWithCounts(response.data);
@@ -19,7 +19,7 @@ const PickedScreen = () => {
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
   
     // Fetch combined product count with "Not Picked" status
-    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
     .then(response => {
       setCombinedProductCount(response.data.totalProductCount);
     })
@@ -27,50 +27,61 @@ const PickedScreen = () => {
   }, [sellerName]);
 
   const handleRiderPress = (driverName) => {
-  navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Picked' });
+    console.log('Navigating to ProductDetailsScreen with params:', {
+      sellerName,
+      driverName,
+      pickupStatus: 'Picked'
+    });
+    navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Picked' });
   };
 
   const handleCombineListPress = () => {
-  navigation.navigate('ProductDetailsScreen', { sellerName, driverName: 'all', pickupStatus: 'Picked' });
+    console.log('Navigating to ProductDetailsScreen with params:', {
+      sellerName,
+      driverName: 'all',
+      pickupStatus: 'Picked'
+    });
+    navigation.navigate('ProductDetailsScreen', { sellerName, driverName: 'all', pickupStatus: 'Picked' });
   };
 
   return (
-  <View style={styles.container}>
-    {ridersWithCounts.length === 0 ? (
-      <View style={styles.noItemsContainer}>
-        <Text style={styles.noItemsText}>All items are picked!</Text>
-      </View>
-    ) : (
-      <FlatList
-        data={ridersWithCounts}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
-            <View style={styles.tile}>
-              <Text style={styles.productCount}>
-                {item.driverName}
-              </Text>
-              <Text style={styles.text}>
-                {item.productCount} {item.productCount === 1 ? 'item' : 'items'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        ListHeaderComponent={() => (
-          <TouchableOpacity onPress={handleCombineListPress}>
-            <View style={styles.combineListTile}>
-              <Text style={styles.productCount}>Combined List</Text>
-              <Text style={styles.text}>
-                {combinedProductCount} {combinedProductCount === 1 ? 'item' : 'items'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
-    )}
-  </View>
+    <View style={styles.container}>
+      {ridersWithCounts.length === 0 ? (
+        <View style={styles.noItemsContainer}>
+          <Text style={styles.noItemsText}>No items are picked!</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={ridersWithCounts}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
+              <View style={styles.tile}>
+                <Text style={styles.productCount}>
+                  {item.driverName}
+                </Text>
+                <Text style={styles.text}>
+                  {item.productCount} {item.productCount === 1 ? 'item' : 'items'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          ListHeaderComponent={() => (
+            <TouchableOpacity onPress={handleCombineListPress}>
+              <View style={styles.combineListTile}>
+                <Text style={styles.productCount}>Combined List</Text>
+                <Text style={styles.text}>
+                  {combinedProductCount} {combinedProductCount === 1 ? 'item' : 'items'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+    </View>
   );
-  };
+};
+
 
 const styles = StyleSheet.create({
   container: {
@@ -99,7 +110,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: 15,
+    elevation: 5,
     marginVertical: 10,
     backgroundColor: '#e0e0e0',
     borderColor: '#aaa',

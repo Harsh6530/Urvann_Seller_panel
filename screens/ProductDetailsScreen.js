@@ -14,9 +14,11 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
+      console.log('Seller Name:', sellerName);
+      console.log('Driver Name:', driverName);
       const endpoint = pickupStatus === 'Picked' 
-        ? 'http://10.112.104.101:5001/api/products/picked' 
-        : 'http://10.112.104.101:5001/api/products/not-picked';
+        ? 'http://10.117.4.182:5001/api/picked-products' 
+        : 'http://10.117.4.182:5001/api/not-picked-products';
 
       const response = await axios.get(endpoint, {
         params: {
@@ -186,9 +188,9 @@ const ProductDetailsScreen = ({ route }) => {
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
                 </Text>
-                <Text style={[styles.statusText, selectedProduct.Pickup_Status === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
+                {/* <Text style={[styles.statusText, selectedProduct.Pickup_Status === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
                   {selectedProduct.Pickup_Status}
-                </Text>
+                </Text> */}
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '90%',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
     padding: 15,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -241,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 15,
     backgroundColor: '#ffffff',
-    padding: 15,
+    padding: 12,
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 10,
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     resizeMode: 'cover',
-    marginRight: 15,
+    marginRight: 8,
     borderRadius: 10,
   },
   textContainer: {
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   pickupStatusText: {
-    marginTop: 2,
+    // marginTop: 2,
     fontWeight: 'bold',
   },
   modalContainer: {

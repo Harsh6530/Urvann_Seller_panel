@@ -12,7 +12,7 @@ const SummaryScreen = ({ route }) => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await axios.get(`http://10.112.104.101:5001/api/summary/${sellerName}`);
+        const response = await axios.get(`http://10.117.4.182:5001/api/summary/${sellerName}`);
         if (Object.keys(response.data).length === 0) {
           setNoData(true); // No data but no error
         } else {

@@ -11,7 +11,7 @@ const RefundScreen = ({ route }) => {
   useEffect(() => {
     const fetchRefunds = async () => {
       try {
-        const response = await axios.get(`http://10.112.104.101:5001/api/refund/${sellerName}`);
+        const response = await axios.get(`http://10.117.4.182:5001/api/refund/${sellerName}`);
         setRefunds(response.data);
         setLoading(false);
       } catch (error) {
