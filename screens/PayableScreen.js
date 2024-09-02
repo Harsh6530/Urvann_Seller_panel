@@ -11,7 +11,7 @@ const PayableScreen = ({ route }) => {
   useEffect(() => {
     const fetchPayables = async () => {
       try {
-        const response = await axios.get(`https://urvann-seller-panel-yc3k.onrender.com/api/payable/${sellerName}`);
+        const response = await axios.get(`http://10.112.104.101:5001/api/payable/${sellerName}`);
         setPayables(response.data);
         setLoading(false);
       } catch (error) {

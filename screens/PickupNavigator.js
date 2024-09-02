@@ -1,8 +1,7 @@
 import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import RiderCodesPickedScreen from './RiderCodesPickedScreen';
-import RiderCodesNotPickedScreen from './RiderCodesNotPickedScreen';
-import ReversePickupScreen from './ReversePickupScreen';  // Import the ReversePickupScreen
+import InternalPickupTabNavigator from './InternalPickupTabNavigator';  // The navigator you created earlier
+import InternalReturnsTabNavigator from './InternalReturnsTabNavigator';  // The new navigator
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -26,26 +25,18 @@ const PickupNavigator = ({ route }) => {
       }}
     >
       <Tab.Screen 
-        name="NotPicked" 
-        component={RiderCodesNotPickedScreen} 
+        name="PickupTab" 
+        component={InternalPickupTabNavigator} 
         initialParams={{ sellerName }} 
-        options={{ tabBarLabel: 'Not Picked' }} 
+        options={{ tabBarLabel: 'Pickup' }} 
       />
       
       <Tab.Screen 
-        name="Picked" 
-        component={RiderCodesPickedScreen} 
+        name="Returns" 
+        component={InternalReturnsTabNavigator} 
         initialParams={{ sellerName }} 
-        options={{ tabBarLabel: 'Picked' }} 
+        options={{ tabBarLabel: 'Returns' }} 
       />
-
-      <Tab.Screen 
-        name="ReversePickup" 
-        component={ReversePickupScreen} 
-        initialParams={{ sellerName }} 
-        options={{ tabBarLabel: 'Reverse Pickup' }} 
-      />
-      
     </Tab.Navigator>
   );
 };

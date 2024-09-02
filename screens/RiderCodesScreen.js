@@ -11,13 +11,13 @@ const RiderCodesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.5.16.225:5001/api/sellers/${sellerName}/riders`)
+    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/riders`)
       .then(response => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
     
-    axios.get(`http://10.5.16.225:5001/api/sellers/${sellerName}/all`)
+    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/all`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })

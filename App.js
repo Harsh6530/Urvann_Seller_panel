@@ -2,12 +2,14 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import MainTabNavigator from './screens/MainTabNavigator';
-import ProductDetailsScreen from './screens/ProductDetailsScreen';
+//import ProductDetailsScreen from './screens/ProductDetailsScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import RiderCodesScreen from './screens/RiderCodesScreen';
-import ReverseProductDetailsScreen from './screens/ReverseProductDetailsScreen';
+import ReverseDeliveredScreen from './screens/ReverseDeliveredScreen';
+import ReverseNotDeliveredScreen from './screens/ReverseNotDeliveredScreen';
+import ProductDetailsScreen from './screens/ProductDetailsScreen';
 
 const Stack = createStackNavigator();
 
@@ -29,9 +31,10 @@ const App = () => {
         <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Register' }} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
-        <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} options={{ title: 'Product Details' }} />
+        <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} options={{ title: 'Product Details' }} />
         <Stack.Screen name="RiderCodes" component={RiderCodesScreen} options={{ title: 'Rider Name'}}/>
-        <Stack.Screen name="ReverseProductDetails" component={ReverseProductDetailsScreen} options={{ title: 'Reverse Product Details' }} />
+        <Stack.Screen name="ReverseDelieveredScreen" component={ReverseDeliveredScreen} options={{ title: 'Reverse Delivered Product Details' }} />
+        <Stack.Screen name="ReverseNotDelieveredScreen" component={ReverseNotDeliveredScreen} options={{ title: 'Reverse Not Delivered Product Details' }} />
 
       </Stack.Navigator>
     </NavigationContainer>

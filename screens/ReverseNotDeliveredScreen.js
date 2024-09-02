@@ -4,8 +4,8 @@ import axios from 'axios';
 import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
 
-const ProductDetailsScreen = ({ route }) => {
-  const { sellerName, riderCode } = route.params;
+const ReverseDeliveredScreen = ({ route }) => {
+  const { sellerName, driverName, pickupStatus } = route.params;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
@@ -14,10 +14,10 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://10.112.104.101:5001/api/products', {
+      const response = await axios.get('http://10.112.104.101:5001/api/reverse-pickup-products-not-delivered', {
         params: {
           seller_name: sellerName,
-          rider_code: riderCode !== 'all' ? riderCode : 'all',
+          rider_code: driverName !== 'all' ? driverName : 'all',
         }
       });
 
@@ -38,7 +38,7 @@ const ProductDetailsScreen = ({ route }) => {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [sellerName, riderCode]);
+  }, [sellerName, driverName, pickupStatus]);
 
   const handleImagePress = (product) => {
     setSelectedProduct(product);
@@ -46,7 +46,7 @@ const ProductDetailsScreen = ({ route }) => {
   };
 
   const renderProduct = ({ item }) => {
-    const pickupStatusColor = item.Pickup_Status === 'Picked' ? 'green' : 'red';
+    const deliveryStatusColor = item.Delivery_Status === 'Delivered' ? 'green' : 'red';
 
     return (
       <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
@@ -65,8 +65,8 @@ const ProductDetailsScreen = ({ route }) => {
             <Text>
               <Text style={styles.boldText}>Quantity: </Text>{item.total_item_quantity}
             </Text>
-            <Text style={[styles.pickupStatusText, { color: pickupStatusColor }]}>
-              {item.Pickup_Status}
+            <Text style={[styles.deliveryStatusText, { color: deliveryStatusColor }]}>
+              {item.Delivery_Status}
             </Text>
           </View>
         </View>
@@ -92,7 +92,7 @@ const ProductDetailsScreen = ({ route }) => {
       };
     }
     combinedProducts[product.line_item_sku].total_item_quantity += product.total_item_quantity;
-    combinedProducts[product.line_item_sku].Pickup_Status = ''; // Ensure pickup status is empty in combined list
+    combinedProducts[product.line_item_sku].Delivery_Status = ''; // Ensure delivery status is empty in combined list
   });
 
   // Convert combined products object to array
@@ -110,7 +110,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {riderCode === 'all' ? (
+      {driverName === 'all' ? (
         <>
           <View style={styles.headerContainer}>
             <Text style={styles.header}>Combined List</Text>
@@ -147,8 +147,8 @@ const ProductDetailsScreen = ({ route }) => {
                       <Text>
                         <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
                       </Text>
-                      <Text style={[styles.pickupStatusText, { color: product.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
-                        {product.Pickup_Status}
+                      <Text style={[styles.deliveryStatusText, { color: product.Delivery_Status === 'Delivered' ? 'green' : 'red' }]}>
+                        {product.Delivery_Status}
                       </Text>
                     </View>
                   </View>
@@ -159,23 +159,36 @@ const ProductDetailsScreen = ({ route }) => {
         </Swiper>
       )}
 
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {selectedProduct && (
-              <>
-                <Text style={styles.modalText}>SKU: {selectedProduct.line_item_sku}</Text>
-                <Text style={styles.modalText}>Name: {selectedProduct.line_item_name}</Text>
-                <Text style={styles.modalText}>Price: ₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}</Text>
-                <Text style={styles.modalText}>Quantity: {selectedProduct.total_item_quantity}</Text>
-                <Text style={[styles.pickupStatusText, { color: selectedProduct.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
-                  {selectedProduct.Pickup_Status}
+      {selectedProduct && (
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <LazyImage source={{ uri: selectedProduct.image1 }} style={styles.fullScreenImage} />
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>SKU: </Text>{selectedProduct.line_item_sku}
                 </Text>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>Name: </Text>{selectedProduct.line_item_name}
+                </Text>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>Price: </Text>₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}
+                </Text>
+                <Text style={styles.modalText}>
+                  <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
+                </Text>
+                <Text style={[styles.statusText, selectedProduct["Delivery Status"] === "Delivered" ? styles.deliveredStatus : styles.notDeliveredStatus]}>
+                  {selectedProduct["Delivery Status"]}
+                </Text>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -235,9 +248,8 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    resizeMode: 'cover',
-    marginRight: 15,
     borderRadius: 10,
+    marginRight: 15,
   },
   textContainer: {
     flex: 1,
@@ -246,31 +258,49 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: 'bold',
   },
-  pickupStatusText: {
-    marginTop: 10,
+  deliveryStatusText: {
+    marginTop: 5,
     fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: '#ffffff',
-    padding: 20,
+    margin: 20,
     borderRadius: 10,
-    width: '80%',
+    padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 10,
+    elevation: 5,
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: 300,
+    marginBottom: 20,
+    borderRadius: 10,
   },
   modalText: {
-    fontSize: 16,
-    marginVertical: 5,
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  boldModalText: {
+    fontWeight: 'bold',
+  },
+  statusText: {
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  deliveredStatus: {
+    color: 'green',
+  },
+  notDeliveredStatus: {
+    color: 'red',
   },
 });
 
-export default ProductDetailsScreen;
+export default ReverseDeliveredScreen;

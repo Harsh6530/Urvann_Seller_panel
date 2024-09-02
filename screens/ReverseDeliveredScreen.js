@@ -4,7 +4,7 @@ import axios from 'axios';
 import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
 
-const ProductDetailsScreen = ({ route }) => {
+const ReverseDeliveredScreen = ({ route }) => {
   const { sellerName, driverName, pickupStatus } = route.params;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +14,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://10.5.16.225:5001/api/reverse-pickup-products', {
+      const response = await axios.get('http://10.112.104.101:5001/api/reverse-pickup-products-delivered', {
         params: {
           seller_name: sellerName,
           rider_code: driverName !== 'all' ? driverName : 'all',
@@ -303,4 +303,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProductDetailsScreen;
+export default ReverseDeliveredScreen;
