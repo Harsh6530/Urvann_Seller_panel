@@ -14,7 +14,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://10.112.104.101:5001/api/products', {
+      const response = await axios.get('http://192.168.137.1:5001/api/products', {
         params: {
           seller_name: sellerName,
           rider_code: riderCode !== 'all' ? riderCode : 'all',

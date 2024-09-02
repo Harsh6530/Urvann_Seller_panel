@@ -15,8 +15,8 @@ const ProductDetailsScreen = ({ route }) => {
   const fetchProducts = async () => {
     try {
       const endpoint = pickupStatus === 'Picked' 
-        ? 'http://10.112.104.101:5001/api/products/picked' 
-        : 'http://10.112.104.101:5001/api/products/not-picked';
+        ? 'http://192.168.137.1:5001/api/products/picked' 
+        : 'http://192.168.137.1:5001/api/products/not-picked';
 
       const response = await axios.get(endpoint, {
         params: {

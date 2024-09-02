@@ -10,7 +10,7 @@ const DeliveredScreen = () => {
   const sellerName = route.params?.sellerName;  // Use optional chaining
 
   useEffect(() => {
-    axios.get(`http://10.112.104.101:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+    axios.get(`http://192.168.137.1:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
       .then(response => {
         setRiders(response.data);
       })

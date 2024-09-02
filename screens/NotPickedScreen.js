@@ -11,14 +11,14 @@ const NotPickedScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/drivers/not-picked`)
+    axios.get(`http://192.168.137.1:5001/api/sellers/${sellerName}/drivers/not-picked`)
       .then(response => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
     
     // Fetch combined product count with "Not Picked" status
-    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
+    axios.get(`http://192.168.137.1:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })

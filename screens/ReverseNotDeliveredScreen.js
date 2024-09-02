@@ -14,7 +14,7 @@ const ReverseDeliveredScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://10.112.104.101:5001/api/reverse-pickup-products-not-delivered', {
+      const response = await axios.get('http://192.168.137.1:5001/api/reverse-pickup-products-not-delivered', {
         params: {
           seller_name: sellerName,
           rider_code: driverName !== 'all' ? driverName : 'all',
