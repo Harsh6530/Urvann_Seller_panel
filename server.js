@@ -391,15 +391,23 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
     // Dynamically set the collection for the Route model
     const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
-    // Find the distinct riders (drivers) for the given seller and order types
+    // Find the distinct riders (drivers) for the given seller, order types, and delivery status
     const riders = await Route.find({
       seller_name,
-      metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] }
+      metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
+      Delivery_Status: 'Delivered' // Fetch only those with Delivery_Status as Delivered
     }).distinct('Driver Name');
 
     const ridersWithCounts = await Promise.all(riders.map(async (driverName) => {
       const productCount = await Route.aggregate([
-        { $match: { 'Driver Name': driverName, seller_name, metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] } } },
+        {
+          $match: {
+            'Driver Name': driverName,
+            seller_name,
+            metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
+            Delivery_Status: 'Delivered' // Match only products that are delivered
+          }
+        },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
 
@@ -409,13 +417,71 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
       };
     }));
 
-    //console.log('Riders with counts for seller:', ridersWithCounts);
     res.json(ridersWithCounts);
   } catch (error) {
-    console.error(`Error fetching riders and counts for seller ${sellerName}:`, error);
+    console.error(`Error fetching riders and counts for seller ${seller_name}:`, error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (req, res) => {
+  const { seller_name } = req.params;
+  console.log(`Fetching riders for seller: ${seller_name}`);
+
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
+
+    // Check each collection for the seller's name
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
+
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
+
+    // Dynamically set the collection for the Route model
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+
+    // Find the distinct riders (drivers) for the given seller, order types, and delivery status
+    const riders = await Route.find({
+      seller_name,
+      metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
+      Delivery_Status: 'Not Delivered' // Fetch only those with Delivery_Status as Delivered
+    }).distinct('Driver Name');
+
+    const ridersWithCounts = await Promise.all(riders.map(async (driverName) => {
+      const productCount = await Route.aggregate([
+        {
+          $match: {
+            'Driver Name': driverName,
+            seller_name,
+            metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
+            Delivery_Status: 'Not Delivered' // Match only products that are delivered
+          }
+        },
+        { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
+      ]);
+
+      return {
+        driverName,
+        productCount: productCount[0] ? productCount[0].totalQuantity : 0
+      };
+    }));
+
+    res.json(ridersWithCounts);
+  } catch (error) {
+    console.error(`Error fetching riders and counts for seller ${seller_name}:`, error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 app.get('/api/products/:seller_name', async (req, res) => {
   const { seller_name } = req.params;
@@ -791,9 +857,9 @@ app.get('/api/products/picked', async (req, res) => {
   }
 });
 
-app.get('/api/reverse-pickup-products', async (req, res) => {
+app.get('/api/reverse-pickup-products-delivered', async (req, res) => {
   const { seller_name, rider_code } = req.query;
-  
+
   try {
     const collections = await routeConnection.db.listCollections().toArray();
     let matchingCollectionName;
@@ -815,7 +881,8 @@ app.get('/api/reverse-pickup-products', async (req, res) => {
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-      metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] }
+      metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] },
+      Delivery_Status: 'Delivered' // Add the condition to fetch only delivered products
     };
 
     if (rider_code !== 'all') {
@@ -826,8 +893,6 @@ app.get('/api/reverse-pickup-products', async (req, res) => {
       .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status') 
       .sort({ GMV: -1 })
       .lean();
-
-    //console.log('Filtered Data:', filteredData); // Debugging
 
     const skuList = filteredData.map(data => data.line_item_sku);
     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
@@ -842,14 +907,10 @@ app.get('/api/reverse-pickup-products', async (req, res) => {
       line_item_price: Number(data.line_item_price) // Ensure it's a number
     }));
 
-    //console.log('Merged Data:', mergedData); // Debugging
-
     const orderCodeQuantities = mergedData.reduce((acc, data) => {
       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
-
-    //console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
 
     const products = mergedData.map(data => ({
       FINAL: data.FINAL,
@@ -869,6 +930,81 @@ app.get('/api/reverse-pickup-products', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
+  const { seller_name, rider_code } = req.query;
+
+  try {
+    const collections = await routeConnection.db.listCollections().toArray();
+    let matchingCollectionName;
+
+    for (const collection of collections) {
+      const currentCollection = routeConnection.collection(collection.name);
+      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+      if (foundSeller) {
+        matchingCollectionName = collection.name;
+        break;
+      }
+    }
+
+    if (!matchingCollectionName) {
+      return res.status(404).json({ message: 'Seller not found in any collection' });
+    }
+
+    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+
+    const query = { 
+      seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
+      metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] },
+      Delivery_Status: 'Not Delivered' // Add the condition to fetch only delivered products
+    };
+
+    if (rider_code !== 'all') {
+      query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
+    }
+
+    const filteredData = await Route.find(query)
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status') 
+      .sort({ GMV: -1 })
+      .lean();
+
+    const skuList = filteredData.map(data => data.line_item_sku);
+    const photos = await Photo.find({ sku: { $in: skuList } }).lean();
+    const photoMap = {};
+    photos.forEach(photo => {
+      photoMap[photo.sku] = photo.image_url;
+    });
+
+    const mergedData = filteredData.map(data => ({
+      ...data,
+      image1: photoMap[data.line_item_sku] || null,
+      line_item_price: Number(data.line_item_price) // Ensure it's a number
+    }));
+
+    const orderCodeQuantities = mergedData.reduce((acc, data) => {
+      acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
+      return acc;
+    }, {});
+
+    const products = mergedData.map(data => ({
+      FINAL: data.FINAL,
+      line_item_sku: data.line_item_sku,
+      line_item_name: data.line_item_name,
+      image1: data.image1,
+      total_item_quantity: data.total_item_quantity,
+      line_item_price: data.line_item_price,
+      Delivery_Status: data.Delivery_Status,
+      metafield_order_type: data.metafield_order_type,
+      GMV: data.GMV
+    }));
+
+    res.json({ orderCodeQuantities, products });
+  } catch (error) {
+    console.error('Error fetching picked products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 // app.get('/api/reverse-pickup-products', async (req, res) => {
 //   const { seller_name, driverName } = req.query;

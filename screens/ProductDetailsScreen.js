@@ -6,7 +6,7 @@ import LazyImage from '../LazyImage';
 
 const ProductDetailsScreen = ({ route }) => {
   const { sellerName, driverName, pickupStatus } = route.params;  // Accept the new parameter
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);  // Default to an empty array
   const [loading, setLoading] = useState(true);
   const [orderCodeQuantities, setOrderCodeQuantities] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
@@ -15,8 +15,8 @@ const ProductDetailsScreen = ({ route }) => {
   const fetchProducts = async () => {
     try {
       const endpoint = pickupStatus === 'Picked' 
-        ? 'http://10.112.104.100:5001/api/products/picked' 
-        : 'http://10.112.104.100:5001/api/products/not-picked';
+        ? 'http://10.112.104.101:5001/api/products/picked' 
+        : 'http://10.112.104.101:5001/api/products/not-picked';
 
       const response = await axios.get(endpoint, {
         params: {
@@ -25,8 +25,9 @@ const ProductDetailsScreen = ({ route }) => {
         }
       });
 
-      setProducts(response.data.products);
-      setOrderCodeQuantities(response.data.orderCodeQuantities);
+      // Ensure that response.data.products is an array
+      setProducts(Array.isArray(response.data.products) ? response.data.products : []);
+      setOrderCodeQuantities(response.data.orderCodeQuantities || {});
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -163,7 +164,7 @@ const ProductDetailsScreen = ({ route }) => {
         </Swiper>
       )}
 
-       {selectedProduct && (
+      {selectedProduct && (
         <Modal
           visible={modalVisible}
           transparent={true}
@@ -185,8 +186,8 @@ const ProductDetailsScreen = ({ route }) => {
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
                 </Text>
-                <Text style={[styles.statusText, selectedProduct["Pickup Status"] === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
-                  {selectedProduct["Pickup Status"]}
+                <Text style={[styles.statusText, selectedProduct.Pickup_Status === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
+                  {selectedProduct.Pickup_Status}
                 </Text>
               </View>
             </View>
@@ -196,6 +197,7 @@ const ProductDetailsScreen = ({ route }) => {
     </View>
   );
 };
+
 
 
 const styles = StyleSheet.create({

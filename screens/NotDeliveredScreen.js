@@ -1,31 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native'; // Import useRoute
 
-const ReversePickupScreen = ({ route }) => {
+const NotDeliveredScreen = () => {
   const [riders, setRiders] = useState([]);
+  const [error, setError] = useState(null); // State for error handling
   const navigation = useNavigation();
-  const { sellerName } = route.params; // Extract sellerName from route params
+  const route = useRoute(); // Get route from useRoute hook
+  const { sellerName } = route.params || {}; // Extract sellerName from route params
 
   useEffect(() => {
-    axios.get(`http://10.112.104.101:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
-      .then(response => {
-        setRiders(response.data);
-      })
-      .catch(error => console.error(`Error fetching reverse pickup riders for ${sellerName}:`, error));
+    if (sellerName) {
+      // Fetch data from API
+      axios.get(`http://10.112.104.101:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
+        .then(response => {
+          setRiders(response.data);
+        })
+        .catch(error => {
+          console.error(`Error fetching not delivered reverse pickup riders for ${sellerName}:`, error);
+          setError('Failed to load data. Please try again later.'); // Set error message
+        });
+    }
   }, [sellerName]);
 
   const handleRiderPress = (driverName) => {
     // Define the endpoint for the PickupDetails screen
-    const endpoint = '/api/reverse-pickup-products';  // Adjust this endpoint as needed
+    const endpoint = '/api/reverse-pickup-products-not-delivered';  // Adjust this endpoint as needed
   
-    navigation.navigate('ReverseProductDetails', {
+    navigation.navigate('ReverseNotDelieveredScreen', {
       sellerName,
       driverName,
-      endpoint  // Pass the endpoint parameter
+      endpoint,
+      previousScreen: 'NotDeliveredScreen'
     });
   };
+
+  // Render loading or error state
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -82,6 +100,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });
 
-export default ReversePickupScreen;
+export default NotDeliveredScreen;

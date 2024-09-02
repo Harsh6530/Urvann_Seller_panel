@@ -24,7 +24,7 @@ const ShootSectionScreen = ({ route }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`http://10.112.104.100:5001/api/products/${sellerName}`);
+        const response = await axios.get(`http://10.112.104.101:5001/api/products/${sellerName}`);
         setProducts(response.data);
         if (response.data.length > 0) {
           setSelectedIndex(0);
@@ -72,7 +72,7 @@ const ShootSectionScreen = ({ route }) => {
 
     try {
       const productId = products[selectedIndex]._id;
-      const response = await axios.put(`http://10.112.104.100:5001/api/products/${productId}`, formData);
+      const response = await axios.put(`http://10.112.104.101:5001/api/products/${productId}`, formData);
 
       // Update the local products array with the updated product data
       const updatedProducts = [...products];

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button } from 'reac
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-const RiderCodesNotPickedScreen = () => {
+const NotPickedScreen = () => {
   const { params } = useRoute();
   const { sellerName } = params;
   const [ridersWithCounts, setRidersWithCounts] = useState([]);
@@ -11,14 +11,14 @@ const RiderCodesNotPickedScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.112.104.100:5001/api/sellers/${sellerName}/drivers/not-picked`)
+    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/drivers/not-picked`)
       .then(response => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
     
     // Fetch combined product count with "Not Picked" status
-    axios.get(`http://10.112.104.100:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
+    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })
@@ -26,11 +26,11 @@ const RiderCodesNotPickedScreen = () => {
   }, [sellerName]);
   
   const handleRiderPress = (driverName) => {
-    navigation.navigate('ProductDetails', { sellerName, driverName, pickupStatus: 'Not Picked' });
+    navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Not Picked' });
   };
 
   const handleCombineListPress = () => {
-    navigation.navigate('ProductDetails', { sellerName, driverName: 'all', pickupStatus: 'Not Picked' });
+    navigation.navigate('ProductDetailsScreen', { sellerName, driverName: 'all', pickupStatus: 'Not Picked' });
   };
 
   return (
@@ -134,4 +134,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RiderCodesNotPickedScreen;
+export default NotPickedScreen;

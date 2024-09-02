@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-const ReversePickupScreen = ({ route }) => {
+const DeliveredScreen = () => {
   const [riders, setRiders] = useState([]);
   const navigation = useNavigation();
-  const { sellerName } = route.params; // Extract sellerName from route params
+  const route = useRoute();  // Access route using useRoute
+  const sellerName = route.params?.sellerName;  // Use optional chaining
 
   useEffect(() => {
     axios.get(`http://10.112.104.101:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
@@ -17,13 +18,12 @@ const ReversePickupScreen = ({ route }) => {
   }, [sellerName]);
 
   const handleRiderPress = (driverName) => {
-    // Define the endpoint for the PickupDetails screen
-    const endpoint = '/api/reverse-pickup-products';  // Adjust this endpoint as needed
-  
-    navigation.navigate('ReverseProductDetails', {
+    const endpoint = '/api/reverse-pickup-products-delivered';  // Adjust this endpoint as needed
+    navigation.navigate('ReverseDelieveredScreen', {
       sellerName,
       driverName,
-      endpoint  // Pass the endpoint parameter
+      endpoint,
+      previousScreen: 'DeliveredScreen'  // Pass the screen name here
     });
   };
 
@@ -84,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReversePickupScreen;
+export default DeliveredScreen;

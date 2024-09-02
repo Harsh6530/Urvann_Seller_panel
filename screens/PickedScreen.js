@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-const RiderCodesPickedScreen = () => {
+const PickedScreen = () => {
   const { params } = useRoute();
   const { sellerName } = params;
   const [ridersWithCounts, setRidersWithCounts] = useState([]);
@@ -11,7 +11,7 @@ const RiderCodesPickedScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.112.104.100:5001/api/sellers/${sellerName}/drivers/picked`)
+    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/drivers/picked`)
       .then(response => {
         console.log('Riders with counts:', response.data); // Log the response data
         setRidersWithCounts(response.data);
@@ -19,7 +19,7 @@ const RiderCodesPickedScreen = () => {
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
   
     // Fetch combined product count with "Not Picked" status
-    axios.get(`http://10.112.104.100:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
+    axios.get(`http://10.112.104.101:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
     .then(response => {
       setCombinedProductCount(response.data.totalProductCount);
     })
@@ -27,11 +27,11 @@ const RiderCodesPickedScreen = () => {
   }, [sellerName]);
 
   const handleRiderPress = (driverName) => {
-  navigation.navigate('ProductDetails', { sellerName, driverName, pickupStatus: 'Picked' });
+  navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Picked' });
   };
 
   const handleCombineListPress = () => {
-  navigation.navigate('ProductDetails', { sellerName, driverName: 'all', pickupStatus: 'Picked' });
+  navigation.navigate('ProductDetailsScreen', { sellerName, driverName: 'all', pickupStatus: 'Picked' });
   };
 
   return (
@@ -128,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RiderCodesPickedScreen;
+export default PickedScreen;
