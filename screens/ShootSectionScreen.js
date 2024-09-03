@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons'; // For the down arrow icon
 import { FontAwesome } from '@expo/vector-icons'; // For the star icon
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // Import the KeyboardAwareScrollView
+import RefreshButton from '../components/RefeshButton';
 
 const ShootSectionScreen = ({ route }) => {
   const { sellerName } = route.params;
@@ -21,25 +22,33 @@ const ShootSectionScreen = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(`http://10.117.4.182:5001/api/products/${sellerName}`);
-        setProducts(response.data);
-        if (response.data.length > 0) {
-          setSelectedIndex(0);
-          updateFormData(response.data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        setError('Failed to load products');
-      } finally {
-        setLoading(false);
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`http://10.117.4.182:5001/api/products/${sellerName}`);
+      setProducts(response.data);
+      if (response.data.length > 0) {
+        setSelectedIndex(0);
+        updateFormData(response.data[0]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setError('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProducts();
   }, [sellerName]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchProducts();
+    setRefreshing(false);
+  };
 
   const updateFormData = (product) => {
     setFormData({
@@ -116,6 +125,7 @@ const ShootSectionScreen = ({ route }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
+        <RefreshButton onRefresh={fetchProducts} />
       </View>
     );
   }
@@ -127,6 +137,7 @@ const ShootSectionScreen = ({ route }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardShouldPersistTaps="handled" // Ensures taps are handled even when keyboard is open
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
     >
       <View style={styles.imageContainer}>
         {selectedProduct.image_url ? (

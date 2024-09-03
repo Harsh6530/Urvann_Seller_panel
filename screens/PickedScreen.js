@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import RefreshButton from '../components/RefeshButton';
 
 const PickedScreen = () => {
   const { params } = useRoute();
@@ -17,14 +18,34 @@ const PickedScreen = () => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
-  
+
     // Fetch combined product count with "Not Picked" status
     axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
-    .then(response => {
-      setCombinedProductCount(response.data.totalProductCount);
-    })
-    .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
+      .then(response => {
+        setCombinedProductCount(response.data.totalProductCount);
+      })
+      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
   }, [sellerName]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/picked`)
+      .then(response => {
+        console.log('Riders with counts:', response.data); // Log the response data
+        setRidersWithCounts(response.data);
+      })
+      .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
+
+    // Fetch combined product count with "Not Picked" status
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
+      .then(response => {
+        setCombinedProductCount(response.data.totalProductCount);
+      })
+      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
+    setRefreshing(false);
+  };
 
   const handleRiderPress = (driverName) => {
     console.log('Navigating to ProductDetailsScreen with params:', {
@@ -49,11 +70,13 @@ const PickedScreen = () => {
       {ridersWithCounts.length === 0 ? (
         <View style={styles.noItemsContainer}>
           <Text style={styles.noItemsText}>No items are picked!</Text>
+          <RefreshButton onRefresh={handleRefresh} />
         </View>
       ) : (
         <FlatList
           data={ridersWithCounts}
           keyExtractor={(item, index) => index.toString()}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
               <View style={styles.tile}>

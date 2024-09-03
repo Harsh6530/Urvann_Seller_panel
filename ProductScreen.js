@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWi
 import axios from 'axios';
 import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
+import RefreshButton from './components/RefeshButton';
 
 const ProductDetailsScreen = ({ route }) => {
   const { sellerName, riderCode } = route.params;
@@ -69,6 +70,7 @@ const ProductDetailsScreen = ({ route }) => {
               {item.Pickup_Status}
             </Text>
           </View>
+          <RefreshButton onRefresh={() => fetchProducts()} />
         </View>
       </TouchableWithoutFeedback>
     );

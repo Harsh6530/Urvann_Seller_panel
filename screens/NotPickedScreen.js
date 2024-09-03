@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import RefreshButton from '../components/RefeshButton';
 
 const NotPickedScreen = () => {
   const { params } = useRoute();
@@ -16,7 +17,7 @@ const NotPickedScreen = () => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
-    
+
     // Fetch combined product count with "Not Picked" status
     axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
       .then(response => {
@@ -24,7 +25,26 @@ const NotPickedScreen = () => {
       })
       .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
   }, [sellerName]);
-  
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/not-picked`)
+      .then(response => {
+        setRidersWithCounts(response.data);
+      })
+      .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
+
+    // Fetch combined product count with "Not Picked" status
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
+      .then(response => {
+        setCombinedProductCount(response.data.totalProductCount);
+      })
+      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
+    setRefreshing(false);
+  };
+
   const handleRiderPress = (driverName) => {
     navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Not Picked' });
   };
@@ -38,11 +58,13 @@ const NotPickedScreen = () => {
       {ridersWithCounts.length === 0 ? (
         <View style={styles.noItemsContainer}>
           <Text style={styles.noItemsText}>All items are picked!</Text>
+          <RefreshButton onRefresh={handleRefresh} />
         </View>
       ) : (
         <FlatList
           data={ridersWithCounts}
           keyExtractor={(item, index) => index.toString()}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
               <View style={styles.tile}>

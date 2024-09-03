@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
@@ -16,10 +16,22 @@ const ReversePickupScreen = ({ route }) => {
       .catch(error => console.error(`Error fetching reverse pickup riders for ${sellerName}:`, error));
   }, [sellerName]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+      .then(response => {
+        setRiders(response.data);
+      })
+      .catch(error => console.error(`Error fetching reverse pickup riders for ${sellerName}:`, error));
+    setRefreshing(false);
+  }
+
   const handleRiderPress = (driverName) => {
     // Define the endpoint for the PickupDetails screen
     const endpoint = '/api/reverse-pickup-products';  // Adjust this endpoint as needed
-  
+
     navigation.navigate('ReverseProductDetails', {
       sellerName,
       driverName,
@@ -32,9 +44,10 @@ const ReversePickupScreen = ({ route }) => {
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.tile} 
+          <TouchableOpacity
+            style={styles.tile}
             onPress={() => handleRiderPress(item.driverName)}
           >
             <Text style={styles.riderName}>

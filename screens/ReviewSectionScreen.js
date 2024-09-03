@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import RefreshButton from '../components/RefeshButton';
 
 const ReviewSectionScreen = ({ navigation, route }) => {
   const { sellerName } = route.params; // Get sellerName from route params
@@ -17,25 +18,33 @@ const ReviewSectionScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await axios.get(`http://10.117.4.182:5001/api/reviews/${sellerName}`);
-        setReviews(response.data);
-        if (response.data.length > 0) {
-          setSelectedIndex(0);
-          updateFormData(response.data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
-        setError('Failed to load reviews');
-      } finally {
-        setLoading(false);
+  const fetchReviews = async () => {
+    try {
+      const response = await axios.get(`http://10.117.4.182:5001/api/reviews/${sellerName}`);
+      setReviews(response.data);
+      if (response.data.length > 0) {
+        setSelectedIndex(0);
+        updateFormData(response.data[0]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      setError('Failed to load reviews');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchReviews();
   }, [sellerName]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchReviews();
+    setRefreshing(false);
+  };
 
   const updateFormData = (review) => {
     setFormData({
@@ -61,11 +70,11 @@ const ReviewSectionScreen = ({ navigation, route }) => {
   const saveData = async () => {
     try {
       const reviewId = reviews[selectedIndex]._id;
-  
+
       if (!reviewId) {
         throw new Error('Review ID is missing');
       }
-  
+
       // Prepare the data to be updated
       const updatedReviewData = {
         ...formData,
@@ -73,23 +82,23 @@ const ReviewSectionScreen = ({ navigation, route }) => {
         "Suggested Price": parseFloat(formData.SuggestedPrice) || 0,
         Available: formData.Available ? 'yes' : 'no'
       };
-  
+
       // Send the update request to the server
       const response = await axios.put(`http://10.117.4.182:5001/api/reviews/${reviewId}`, updatedReviewData);
-  
+
       // Update the local reviews array with the updated review data
       const updatedReviews = [...reviews];
       updatedReviews[selectedIndex] = response.data; // Assuming the response contains the updated review
-  
+
       setReviews(updatedReviews);
-  
+
       Alert.alert('Success', 'Data saved successfully');
     } catch (error) {
       console.error('Error saving data:', error.response?.data || error.message);
       Alert.alert('Error', 'Failed to save data');
     }
   };
-  
+
   const handleNext = async () => {
     await saveData(); // Save the current review data before navigating
     if (selectedIndex < reviews.length - 1) {
@@ -97,7 +106,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       updateFormData(reviews[selectedIndex + 1]);
     }
   };
-  
+
   const handlePrevious = () => {
     if (selectedIndex > 0) {
       setSelectedIndex(selectedIndex - 1);
@@ -117,6 +126,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
+        <RefreshButton onRefresh={fetchReviews} />
       </View>
     );
   }
@@ -131,7 +141,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     >
       <View style={styles.container}>
         {selectedReview && (
-          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+          <ScrollView contentContainerStyle={styles.scrollViewContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
             <View style={styles.imageContainer}>
               <Image source={{ uri: selectedReview.image_url }} style={styles.productImage} />
             </View>
@@ -210,6 +220,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
             </View>
           </ScrollView>
         )}
+        <RefreshButton onRefresh={fetchReviews} />
       </View>
     </KeyboardAwareScrollView>
   );

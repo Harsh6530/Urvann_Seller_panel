@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native'; // Import useRoute
+import RefreshButton from '../components/RefeshButton';
 
 const NotDeliveredScreen = () => {
   const [riders, setRiders] = useState([]);
@@ -23,6 +24,24 @@ const NotDeliveredScreen = () => {
         });
     }
   }, [sellerName]);
+  
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const handleRefresh = () => {
+    setRefreshing(true);
+    if (sellerName) {
+      // Fetch data from API
+      axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
+        .then(response => {
+          setRiders(response.data);
+        })
+        .catch(error => {
+          console.error(`Error fetching not delivered reverse pickup riders for ${sellerName}:`, error);
+          setError('Failed to load data. Please try again later.'); // Set error message
+        });
+    }
+    setRefreshing(false);
+  };
 
   const handleRiderPress = (driverName) => {
     // Define the endpoint for the PickupDetails screen
@@ -41,6 +60,7 @@ const NotDeliveredScreen = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
+        <RefreshButton onRefresh={handleRefresh} />
       </View>
     );
   }
@@ -50,6 +70,7 @@ const NotDeliveredScreen = () => {
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.tile} 

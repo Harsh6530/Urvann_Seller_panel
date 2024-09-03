@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import axios from 'axios';
+import RefreshButton from '../components/RefeshButton';
 
 const RefundScreen = ({ route }) => {
   const { sellerName } = route.params;
@@ -8,21 +9,29 @@ const RefundScreen = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchRefunds = async () => {
-      try {
-        const response = await axios.get(`http://10.117.4.182:5001/api/refund/${sellerName}`);
-        setRefunds(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching refunds:', error);
-        setError('Error loading refund data.');
-        setLoading(false);
-      }
-    };
+  const fetchRefunds = async () => {
+    try {
+      const response = await axios.get(`http://10.117.4.182:5001/api/refund/${sellerName}`);
+      setRefunds(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching refunds:', error);
+      setError('Error loading refund data.');
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchRefunds();
   }, [sellerName]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchRefunds();
+    setRefreshing(false);
+  };
 
   const renderRefundItem = ({ item }) => (
     <View style={styles.row}>
@@ -52,6 +61,7 @@ const RefundScreen = ({ route }) => {
           <Text style={styles.sadEmoji}>😔</Text>
           <Text style={styles.noDataText}>Oops! No refund data available for {sellerName}.</Text>
         </View>
+        <RefreshButton onRefresh={fetchRefunds} />
       </View>
     );
   }
@@ -73,6 +83,7 @@ const RefundScreen = ({ route }) => {
             data={refunds}
             renderItem={renderRefundItem}
             keyExtractor={(item, index) => index.toString()}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           />
         </View>
       </ScrollView>

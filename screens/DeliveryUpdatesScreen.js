@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import RefreshButton from '../components/RefeshButton';
 
 const DeliveryUpdatesScreen = ({ route }) => {
   const { sellerName } = route.params;
@@ -8,19 +9,19 @@ const DeliveryUpdatesScreen = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchDeliveryUpdates = async () => {
-      try {
-        const response = await axios.get(`http://10.117.4.182:5001/api/data/${sellerName}`);
-        setDeliveryUpdates(response.data.deliveryUpdates);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching delivery updates:', error);
-        setError(error);
-        setLoading(false);
-      }
-    };
+  const fetchDeliveryUpdates = async () => {
+    try {
+      const response = await axios.get(`http://10.117.4.182:5001/api/data/${sellerName}`);
+      setDeliveryUpdates(response.data.deliveryUpdates);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching delivery updates:', error);
+      setError(error);
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDeliveryUpdates();
   }, [sellerName]);
 
@@ -45,6 +46,7 @@ const DeliveryUpdatesScreen = ({ route }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Error loading delivery updates. Please try again later.</Text>
+        <RefreshButton onRefresh={() => fetchDeliveryUpdates()} />
       </View>
     );
   }
@@ -54,6 +56,7 @@ const DeliveryUpdatesScreen = ({ route }) => {
       <View style={styles.container}>
         <Text style={styles.noDataEmoji}>😔</Text>
         <Text style={styles.noDataText}>Oops! No delivery updates available for {sellerName}.</Text>
+        <RefreshButton onRefresh={() => fetchDeliveryUpdates()} />
       </View>
     );
   }
@@ -74,6 +77,7 @@ const DeliveryUpdatesScreen = ({ route }) => {
             keyExtractor={(item, index) => index.toString()}
           />
         </View>
+        <RefreshButton onRefresh={() => fetchDeliveryUpdates()} />
       </View>
     </ScrollView>
   );

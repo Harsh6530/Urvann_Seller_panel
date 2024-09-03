@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import RefreshButton from '../components/RefeshButton';
 
 const SummaryScreen = ({ route }) => {
   const { sellerName } = route.params;
@@ -9,29 +10,37 @@ const SummaryScreen = ({ route }) => {
   const [error, setError] = useState(null);
   const [noData, setNoData] = useState(false);
 
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        const response = await axios.get(`http://10.117.4.182:5001/api/summary/${sellerName}`);
-        if (Object.keys(response.data).length === 0) {
-          setNoData(true); // No data but no error
-        } else {
-          setSummary(response.data);
-          setNoData(false); // Reset noData if data is found
-        }
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        if (error.response && error.response.status === 404) {
-          setError(`Oops! No summary data available for ${sellerName}.`);
-        } else {
-          setError('Error loading summary data.');
-        }
+  const fetchSummary = async () => {
+    try {
+      const response = await axios.get(`http://10.117.4.182:5001/api/summary/${sellerName}`);
+      if (Object.keys(response.data).length === 0) {
+        setNoData(true); // No data but no error
+      } else {
+        setSummary(response.data);
+        setNoData(false); // Reset noData if data is found
       }
-    };
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      if (error.response && error.response.status === 404) {
+        setError(`Oops! No summary data available for ${sellerName}.`);
+      } else {
+        setError('Error loading summary data.');
+      }
+    }
+  };
 
+  useEffect(() => {
     fetchSummary();
   }, [sellerName]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchSummary();
+    setRefreshing(false);
+  };
 
   if (loading) {
     return (
@@ -47,6 +56,7 @@ const SummaryScreen = ({ route }) => {
       <View style={styles.errorContainer}>
         <Text style={styles.sadEmoji}>😔</Text>
         <Text style={styles.noDataText}>{error}</Text>
+        <RefreshButton onRefresh={fetchSummary} />
       </View>
     );
   }
@@ -56,12 +66,13 @@ const SummaryScreen = ({ route }) => {
       <View style={styles.errorContainer}>
         <Text style={styles.sadEmoji}>😔</Text>
         <Text style={styles.noDataText}>Oops! No summary data available for {sellerName}.</Text>
+        <RefreshButton onRefresh={fetchSummary} />
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView contentContainerStyle={styles.scrollContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
       <View style={styles.container}>
         <View style={styles.card}>
           {Object.keys(summary).map((key) => {

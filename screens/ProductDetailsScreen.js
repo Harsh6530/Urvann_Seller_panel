@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView, RefreshControl } from 'react-native';
 import axios from 'axios';
 import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
+import RefreshButton from '../components/RefeshButton';
 
 const ProductDetailsScreen = ({ route }) => {
   const { sellerName, driverName, pickupStatus } = route.params;  // Accept the new parameter
@@ -16,8 +17,8 @@ const ProductDetailsScreen = ({ route }) => {
     try {
       console.log('Seller Name:', sellerName);
       console.log('Driver Name:', driverName);
-      const endpoint = pickupStatus === 'Picked' 
-        ? 'http://10.117.4.182:5001/api/picked-products' 
+      const endpoint = pickupStatus === 'Picked'
+        ? 'http://10.117.4.182:5001/api/picked-products'
         : 'http://10.117.4.182:5001/api/not-picked-products';
 
       const response = await axios.get(endpoint, {
@@ -46,6 +47,14 @@ const ProductDetailsScreen = ({ route }) => {
 
     return () => clearInterval(intervalId);
   }, [sellerName, driverName, pickupStatus]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchProducts();
+    setRefreshing(false);
+  };
 
   const handleImagePress = (product) => {
     setSelectedProduct(product);
@@ -127,12 +136,13 @@ const ProductDetailsScreen = ({ route }) => {
             renderItem={renderProduct}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.scrollViewContainer}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           />
         </>
       ) : (
         <Swiper style={styles.wrapper} showsButtons loop={false}>
           {sortedFinalCodes.map(finalCode => (
-            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
+            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
               <View style={styles.headerContainer}>
                 <Text style={styles.header}>Order Code: {finalCode}</Text>
                 <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
@@ -192,6 +202,7 @@ const ProductDetailsScreen = ({ route }) => {
                   {selectedProduct.Pickup_Status}
                 </Text> */}
               </View>
+              <RefreshButton onRefresh={fetchProducts} />
             </View>
           </TouchableWithoutFeedback>
         </Modal>

@@ -16,15 +16,33 @@ const RiderCodesScreen = () => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
-    
+
     axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })
       .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
   }, [sellerName]);
-  
-  
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/riders`)
+      .then(response => {
+        setRidersWithCounts(response.data);
+      })
+      .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
+
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all`)
+      .then(response => {
+        setCombinedProductCount(response.data.totalProductCount);
+      })
+      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
+    setRefreshing(false);
+  };
+
+
   const handleRiderPress = (riderCode) => {
     navigation.navigate('ProductDetails', { sellerName, riderCode });
   };
@@ -39,6 +57,7 @@ const RiderCodesScreen = () => {
       <FlatList
         data={ridersWithCounts}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleRiderPress(item.riderCode)}>
             <View style={styles.tile}>

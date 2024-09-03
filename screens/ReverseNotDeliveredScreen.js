@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView, RefreshControl } from 'react-native';
 import axios from 'axios';
 import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
+import RefreshButton from '../components/RefeshButton';
 
 const ReverseDeliveredScreen = ({ route }) => {
   const { sellerName, driverName, pickupStatus } = route.params;
@@ -39,6 +40,14 @@ const ReverseDeliveredScreen = ({ route }) => {
 
     return () => clearInterval(intervalId);
   }, [sellerName, driverName, pickupStatus]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchProducts();
+    setRefreshing(false);
+  };
 
   const handleImagePress = (product) => {
     setSelectedProduct(product);
@@ -120,12 +129,13 @@ const ReverseDeliveredScreen = ({ route }) => {
             renderItem={renderProduct}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.scrollViewContainer}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           />
         </>
       ) : (
         <Swiper style={styles.wrapper} showsButtons loop={false}>
           {sortedFinalCodes.map(finalCode => (
-            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
+            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
               <View style={styles.headerContainer}>
                 <Text style={styles.header}>Order Code: {finalCode}</Text>
                 <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
@@ -185,6 +195,7 @@ const ReverseDeliveredScreen = ({ route }) => {
                   {selectedProduct["Delivery Status"]}
                 </Text>
               </View>
+              <RefreshButton onRefresh={fetchProducts} />
             </View>
           </TouchableWithoutFeedback>
         </Modal>
