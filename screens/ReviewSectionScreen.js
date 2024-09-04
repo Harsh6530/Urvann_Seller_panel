@@ -139,7 +139,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardShouldPersistTaps="handled" // Ensures taps are handled even when keyboard is open
     >
-      <View style={styles.container}>
+      <View>
         {selectedReview && (
           <ScrollView contentContainerStyle={styles.scrollViewContainer}>
             <View style={styles.imageContainer}>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   input: {
-    height: 30, // Reduced height for input boxes
+    height: 45, // Reduced height for input boxes
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
