@@ -220,7 +220,6 @@ const ReviewSectionScreen = ({ navigation, route }) => {
             </View>
           </ScrollView>
         )}
-        <RefreshButton onRefresh={fetchReviews} />
       </View>
     </KeyboardAwareScrollView>
   );

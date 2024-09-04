@@ -249,7 +249,6 @@ const ShootSectionScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
-      <RefreshButton onRefresh={handleRefresh} />
     </KeyboardAwareScrollView>
   );
 };
