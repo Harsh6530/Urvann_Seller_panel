@@ -25,14 +25,6 @@ const RefundScreen = ({ route }) => {
     fetchRefunds();
   }, [sellerName]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchRefunds();
-    setRefreshing(false);
-  };
-
   const renderRefundItem = ({ item }) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.order_id}</Text>
@@ -86,7 +78,7 @@ const RefundScreen = ({ route }) => {
           />
         </View>
       </ScrollView>
-      <RefreshButton onRefresh={handleRefresh} />
+      <RefreshButton onRefresh={fetchRefunds} />
     </View>
   );
 };

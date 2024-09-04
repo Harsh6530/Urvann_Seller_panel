@@ -41,12 +41,8 @@ const ReverseDeliveredScreen = ({ route }) => {
     return () => clearInterval(intervalId);
   }, [sellerName, driverName, pickupStatus]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchProducts();
-    setRefreshing(false);
+  const handleRefresh = async () => {
+    await fetchProducts();
   };
 
   const handleImagePress = (product) => {

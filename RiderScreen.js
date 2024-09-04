@@ -25,10 +25,7 @@ const RiderCodesScreen = () => {
       .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
   }, [sellerName]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
+  const handleRefresh = async () => {
     axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/riders`)
       .then(response => {
         setRidersWithCounts(response.data);
@@ -40,7 +37,6 @@ const RiderCodesScreen = () => {
         setCombinedProductCount(response.data.totalProductCount);
       })
       .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
-    setRefreshing(false);
   };
 
   const handleRiderPress = (riderCode) => {

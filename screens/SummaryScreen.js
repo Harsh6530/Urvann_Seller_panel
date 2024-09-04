@@ -34,14 +34,6 @@ const SummaryScreen = ({ route }) => {
     fetchSummary();
   }, [sellerName]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchSummary();
-    setRefreshing(false);
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -87,8 +79,8 @@ const SummaryScreen = ({ route }) => {
             );
           })}
         </View>
-        <RefreshButton onRefresh={handleRefresh} />
       </View>
+      <RefreshButton onRefresh={fetchSummary} />
     </ScrollView>
   );
 };

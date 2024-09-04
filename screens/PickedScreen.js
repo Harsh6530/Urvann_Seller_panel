@@ -12,25 +12,10 @@ const PickedScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/picked`)
-      .then(response => {
-        console.log('Riders with counts:', response.data); // Log the response data
-        setRidersWithCounts(response.data);
-      })
-      .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
-
-    // Fetch combined product count with "Not Picked" status
-    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
-      .then(response => {
-        setCombinedProductCount(response.data.totalProductCount);
-      })
-      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
+    fetchPicked();
   }, [sellerName]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
+  const fetchPicked = async () => {
     axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/picked`)
       .then(response => {
         console.log('Riders with counts:', response.data); // Log the response data
@@ -44,7 +29,6 @@ const PickedScreen = () => {
         setCombinedProductCount(response.data.totalProductCount);
       })
       .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
-    setRefreshing(false);
   };
 
   const handleRiderPress = (driverName) => {
@@ -99,7 +83,7 @@ const PickedScreen = () => {
           )}
         />
       )}
-      <RefreshButton onRefresh={handleRefresh} />
+      <RefreshButton onRefresh={fetchPicked} />
     </View>
   );
 };

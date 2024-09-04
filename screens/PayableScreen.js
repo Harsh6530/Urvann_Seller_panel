@@ -25,14 +25,6 @@ const PayableScreen = ({ route }) => {
     fetchPayables();
   }, [sellerName]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchPayables();
-    setRefreshing(false);
-  };
-
   const renderPayableItem = ({ item }) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.order_id}</Text>
@@ -60,7 +52,7 @@ const PayableScreen = ({ route }) => {
           <Text style={styles.sadEmoji}>😔</Text>
           <Text style={styles.noDataText}>Oops! No payable data available for {sellerName}.</Text>
         </View>
-        <RefreshButton onRefresh={() => fetchPayables()} />
+        <RefreshButton onRefresh={fetchPayables} />
       </View>
     );
   }
@@ -85,7 +77,7 @@ const PayableScreen = ({ route }) => {
           />
         </View>
       </ScrollView>
-      <RefreshButton onRefresh={() => fetchPayables()} />
+      <RefreshButton onRefresh={fetchPayables} />
     </View>
   );
 };

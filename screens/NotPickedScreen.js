@@ -11,7 +11,8 @@ const NotPickedScreen = () => {
   const [combinedProductCount, setCombinedProductCount] = useState(0);
   const navigation = useNavigation();
 
-  useEffect(() => {
+  
+  const fetchNotPicked = async () => {
     axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/not-picked`)
       .then(response => {
         setRidersWithCounts(response.data);
@@ -24,26 +25,11 @@ const NotPickedScreen = () => {
         setCombinedProductCount(response.data.totalProductCount);
       })
       .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
-  }, [sellerName]);
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/not-picked`)
-      .then(response => {
-        setRidersWithCounts(response.data);
-      })
-      .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
-
-    // Fetch combined product count with "Not Picked" status
-    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
-      .then(response => {
-        setCombinedProductCount(response.data.totalProductCount);
-      })
-      .catch(error => console.error(`Error fetching combined product count for ${sellerName}:`, error));
-    setRefreshing(false);
   };
+
+  useEffect(() => {
+    fetchNotPicked();
+  }, [sellerName]);
 
   const handleRiderPress = (driverName) => {
     navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Not Picked' });
@@ -87,7 +73,7 @@ const NotPickedScreen = () => {
           )}
         />
       )}
-      <RefreshButton onRefresh={handleRefresh} />
+      <RefreshButton onRefresh={fetchNotPicked} />
     </View>
   );
 };

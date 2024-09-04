@@ -25,10 +25,8 @@ const NotDeliveredScreen = () => {
     }
   }, [sellerName]);
   
-  const [refreshing, setRefreshing] = useState(false);
-  
-  const handleRefresh = () => {
-    setRefreshing(true);
+ 
+  const handleRefresh = async () => {
     if (sellerName) {
       // Fetch data from API
       axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
@@ -40,7 +38,6 @@ const NotDeliveredScreen = () => {
           setError('Failed to load data. Please try again later.'); // Set error message
         });
     }
-    setRefreshing(false);
   };
 
   const handleRiderPress = (driverName) => {
