@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity,  } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native'; // Import useRoute
 import RefreshButton from '../components/RefeshButton';
@@ -70,7 +70,6 @@ const NotDeliveredScreen = () => {
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.tile} 
@@ -85,6 +84,7 @@ const NotDeliveredScreen = () => {
           </TouchableOpacity>
         )}
       />
+      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };

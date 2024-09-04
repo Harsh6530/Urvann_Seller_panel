@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity,  } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import RefreshButton from '../components/RefeshButton';
 
 const ReversePickupScreen = ({ route }) => {
   const [riders, setRiders] = useState([]);
@@ -44,7 +45,6 @@ const ReversePickupScreen = ({ route }) => {
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.tile}
@@ -59,6 +59,7 @@ const ReversePickupScreen = ({ route }) => {
           </TouchableOpacity>
         )}
       />
+      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };

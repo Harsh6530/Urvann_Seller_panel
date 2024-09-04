@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity,  } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RefreshButton from '../components/RefeshButton';
@@ -70,13 +70,11 @@ const PickedScreen = () => {
       {ridersWithCounts.length === 0 ? (
         <View style={styles.noItemsContainer}>
           <Text style={styles.noItemsText}>No items are picked!</Text>
-          <RefreshButton onRefresh={handleRefresh} />
         </View>
       ) : (
         <FlatList
           data={ridersWithCounts}
           keyExtractor={(item, index) => index.toString()}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
               <View style={styles.tile}>
@@ -101,6 +99,7 @@ const PickedScreen = () => {
           )}
         />
       )}
+      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };

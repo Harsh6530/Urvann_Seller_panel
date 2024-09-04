@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, ActivityIndicator,  } from 'react-native';
 import axios from 'axios';
 import RefreshButton from '../components/RefeshButton';
 
@@ -83,10 +83,10 @@ const RefundScreen = ({ route }) => {
             data={refunds}
             renderItem={renderRefundItem}
             keyExtractor={(item, index) => index.toString()}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           />
         </View>
       </ScrollView>
+      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };

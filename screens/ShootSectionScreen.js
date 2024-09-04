@@ -137,7 +137,6 @@ const ShootSectionScreen = ({ route }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardShouldPersistTaps="handled" // Ensures taps are handled even when keyboard is open
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
     >
       <View style={styles.imageContainer}>
         {selectedProduct.image_url ? (
@@ -254,6 +253,7 @@ const ShootSectionScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
+      <RefreshButton onRefresh={handleRefresh} />
     </KeyboardAwareScrollView>
   );
 };

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity,  } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import RefreshButton from '../components/RefeshButton';
 
 const DeliveredScreen = () => {
   const [riders, setRiders] = useState([]);
@@ -44,7 +45,6 @@ const DeliveredScreen = () => {
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.tile}
@@ -59,6 +59,7 @@ const DeliveredScreen = () => {
           </TouchableOpacity>
         )}
       />
+      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };

@@ -72,7 +72,7 @@ const SummaryScreen = ({ route }) => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         <View style={styles.card}>
           {Object.keys(summary).map((key) => {
@@ -87,6 +87,7 @@ const SummaryScreen = ({ route }) => {
             );
           })}
         </View>
+        <RefreshButton onRefresh={handleRefresh} />
       </View>
     </ScrollView>
   );

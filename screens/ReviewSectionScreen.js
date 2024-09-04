@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch,  } from 'react-native';
 import axios from 'axios';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RefreshButton from '../components/RefeshButton';
@@ -141,7 +141,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     >
       <View style={styles.container}>
         {selectedReview && (
-          <ScrollView contentContainerStyle={styles.scrollViewContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
+          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
             <View style={styles.imageContainer}>
               <Image source={{ uri: selectedReview.image_url }} style={styles.productImage} />
             </View>

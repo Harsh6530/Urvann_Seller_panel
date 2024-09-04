@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, Modal, TouchableWithoutFeedback, ScrollView,  } from 'react-native';
 import axios from 'axios';
 import Swiper from 'react-native-swiper';
 import LazyImage from '../LazyImage';
@@ -129,13 +129,12 @@ const ReverseDeliveredScreen = ({ route }) => {
             renderItem={renderProduct}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.scrollViewContainer}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           />
         </>
       ) : (
         <Swiper style={styles.wrapper} showsButtons loop={false}>
           {sortedFinalCodes.map(finalCode => (
-            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
+            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
               <View style={styles.headerContainer}>
                 <Text style={styles.header}>Order Code: {finalCode}</Text>
                 <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
@@ -195,11 +194,12 @@ const ReverseDeliveredScreen = ({ route }) => {
                   {selectedProduct["Delivery Status"]}
                 </Text>
               </View>
-              <RefreshButton onRefresh={fetchProducts} />
             </View>
           </TouchableWithoutFeedback>
         </Modal>
       )}
+
+      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };
