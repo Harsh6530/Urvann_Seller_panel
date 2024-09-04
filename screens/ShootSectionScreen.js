@@ -117,16 +117,16 @@ const ShootSectionScreen = ({ route }) => {
     );
   }
 
-  if (error) {
+  const selectedProduct = products[selectedIndex];
+
+  if (error || !selectedProduct) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{error || "No data"}</Text>
         <RefreshButton onRefresh={fetchProducts} />
       </View>
     );
   }
-
-  const selectedProduct = products[selectedIndex];
 
   return (
     <KeyboardAwareScrollView

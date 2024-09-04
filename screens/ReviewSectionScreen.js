@@ -122,16 +122,16 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     );
   }
 
-  if (error) {
+  const selectedReview = reviews[selectedIndex];
+
+  if (error || !selectedReview) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{error || "No data"}</Text>
         <RefreshButton onRefresh={fetchReviews} />
       </View>
     );
   }
-
-  const selectedReview = reviews[selectedIndex];
 
   return (
     <KeyboardAwareScrollView
