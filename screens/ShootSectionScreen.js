@@ -24,7 +24,7 @@ const ShootSectionScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`https://urvann-seller-panel-version.onrender.com/api/products/${sellerName}`);
+      const response = await axios.get(`http://10.117.4.182:5001/api/products/${sellerName}`);
       setProducts(response.data);
       if (response.data.length > 0) {
         setSelectedIndex(0);
@@ -77,7 +77,7 @@ const ShootSectionScreen = ({ route }) => {
 
     try {
       const productId = products[selectedIndex]._id;
-      const response = await axios.put(`https://urvann-seller-panel-version.onrender.com/api/products/${productId}`, formData);
+      const response = await axios.put(`http://10.117.4.182:5001/api/products/${productId}`, formData);
 
       // Update the local products array with the updated product data
       const updatedProducts = [...products];
@@ -127,9 +127,6 @@ const ShootSectionScreen = ({ route }) => {
       </View>
     );
   }
-
-  const isFirstProduct = selectedIndex === 0;
-  const isLastProduct = selectedIndex === products.length - 1;
 
   return (
     <KeyboardAwareScrollView
@@ -214,14 +211,12 @@ const ShootSectionScreen = ({ route }) => {
             </TouchableOpacity>
           </View>
         ) : null}
-
         {potType === 'Others' && (
           <TextInput
             style={styles.input}
             value={formData.Pot}
             onChangeText={(text) => handleInputChange('Pot', text)}
-            placeholder="Enter custom pot type"
-            required
+            placeholder="Enter pot type"
           />
         )}
 
@@ -232,35 +227,27 @@ const ShootSectionScreen = ({ route }) => {
           style={styles.input}
           value={formData['Seller Price']}
           onChangeText={(text) => handleInputChange('Seller Price', text)}
-          placeholder="Enter price in INR"
+          placeholder="Enter seller price"
           keyboardType="numeric"
           required
         />
-          <View style={styles.buttonContainer}>
-            {/* Conditionally render Previous button only if not on the first product */}
-            {selectedIndex > 0 && (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handlePrevious}
-              >
-                <Text style={styles.buttonText}>Previous</Text>
-              </TouchableOpacity>
-            )}
 
-            {/* Conditionally render Save or Next button */}
-            {selectedIndex === products.length - 1 ? (
-              <TouchableOpacity style={styles.button} onPress={saveData}>
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleNext}
-              >
-                <Text style={styles.buttonText}>Next</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handlePrevious}
+            disabled={selectedIndex === 0}
+          >
+            <Text style={styles.buttonText}>Previous</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleNext}
+            disabled={selectedIndex === products.length - 1}
+          >
+            <Text style={styles.buttonText}>Next</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAwareScrollView>
   );

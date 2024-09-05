@@ -16,7 +16,7 @@ const PickedScreen = () => {
   }, [sellerName]);
 
   const fetchPicked = async () => {
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/drivers/picked`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/picked`)
       .then(response => {
         console.log('Riders with counts:', response.data); // Log the response data
         setRidersWithCounts(response.data);
@@ -24,7 +24,7 @@ const PickedScreen = () => {
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
 
     // Fetch combined product count with "Not Picked" status
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/all?pickup_status=picked`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=picked`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })

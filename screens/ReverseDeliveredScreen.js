@@ -15,7 +15,7 @@ const ReverseDeliveredScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('https://urvann-seller-panel-version.onrender.com/api/reverse-pickup-products-delivered', {
+      const response = await axios.get('http://10.117.4.182:5001/api/reverse-pickup-products-delivered', {
         params: {
           seller_name: sellerName,
           rider_code: driverName !== 'all' ? driverName : 'all',

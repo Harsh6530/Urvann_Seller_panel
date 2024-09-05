@@ -12,7 +12,7 @@ const SummaryScreen = ({ route }) => {
 
   const fetchSummary = async () => {
     try {
-      const response = await axios.get(`https://urvann-seller-panel-version.onrender.com/api/summary/${sellerName}`);
+      const response = await axios.get(`http://10.117.4.182:5001/api/summary/${sellerName}`);
       if (Object.keys(response.data).length === 0) {
         setNoData(true); // No data but no error
       } else {

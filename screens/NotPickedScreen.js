@@ -13,14 +13,14 @@ const NotPickedScreen = () => {
 
   
   const fetchNotPicked = async () => {
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/drivers/not-picked`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/drivers/not-picked`)
       .then(response => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
 
     // Fetch combined product count with "Not Picked" status
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/all?pickup_status=not-picked`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all?pickup_status=not-picked`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })

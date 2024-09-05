@@ -12,13 +12,13 @@ const RiderCodesScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/riders`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/riders`)
       .then(response => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
 
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/all`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })
@@ -26,13 +26,13 @@ const RiderCodesScreen = () => {
   }, [sellerName]);
 
   const handleRefresh = async () => {
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/riders`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/riders`)
       .then(response => {
         setRidersWithCounts(response.data);
       })
       .catch(error => console.error(`Error fetching rider codes for ${sellerName}:`, error));
 
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/sellers/${sellerName}/all`)
+    axios.get(`http://10.117.4.182:5001/api/sellers/${sellerName}/all`)
       .then(response => {
         setCombinedProductCount(response.data.totalProductCount);
       })

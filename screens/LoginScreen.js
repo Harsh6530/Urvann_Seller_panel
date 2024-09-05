@@ -53,7 +53,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(`https://urvann-seller-panel-version.onrender.com/api/login`, { username, password });
+      const response = await axios.post(`http://10.117.4.182:5001/api/login`, { username, password });
       if (response.status === 200 && response.data.token) {
         Alert.alert('Login successful', `Welcome, ${username}!`);
 
