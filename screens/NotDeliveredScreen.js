@@ -14,7 +14,7 @@ const NotDeliveredScreen = () => {
   useEffect(() => {
     if (sellerName) {
       // Fetch data from API
-      axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
+      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
         .then(response => {
           setRiders(response.data);
         })
@@ -29,7 +29,7 @@ const NotDeliveredScreen = () => {
   const handleRefresh = async () => {
     if (sellerName) {
       // Fetch data from API
-      axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
+      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
         .then(response => {
           setRiders(response.data);
         })

@@ -11,7 +11,7 @@ const RefundScreen = ({ route }) => {
 
   const fetchRefunds = async () => {
     try {
-      const response = await axios.get(`http://10.117.4.182:5001/api/refund/${sellerName}`);
+      const response = await axios.get(`https://urvann-seller-panel-version.onrender.com/api/refund/${sellerName}`);
       setRefunds(response.data);
       setLoading(false);
     } catch (error) {
