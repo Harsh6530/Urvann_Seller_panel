@@ -20,7 +20,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
 
   const fetchReviews = async () => {
     try {
-      const response = await axios.get(`http://10.117.4.182:5001/api/reviews/${sellerName}`);
+      const response = await axios.get(`https://urvann-seller-panel-version.onrender.com/api/reviews/${sellerName}`);
       setReviews(response.data);
       if (response.data.length > 0) {
         setSelectedIndex(0);
@@ -84,7 +84,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       };
 
       // Send the update request to the server
-      const response = await axios.put(`http://10.117.4.182:5001/api/reviews/${reviewId}`, updatedReviewData);
+      const response = await axios.put(`https://urvann-seller-panel-version.onrender.com/api/reviews/${reviewId}`, updatedReviewData);
 
       // Update the local reviews array with the updated review data
       const updatedReviews = [...reviews];
@@ -203,7 +203,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
 
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonPrevious]}
+                  style={[styles.button, styles.buttonPrevious, (selectedIndex === 0 ? styles.buttonDisabled : null)]}
                   onPress={handlePrevious}
                   disabled={selectedIndex === 0}
                 >
@@ -212,9 +212,11 @@ const ReviewSectionScreen = ({ navigation, route }) => {
                 <TouchableOpacity
                   style={[styles.button, styles.buttonNext]}
                   onPress={handleNext}
-                  disabled={selectedIndex === reviews.length - 1}
+                  // disabled={selectedIndex === reviews.length - 1}
                 >
-                  <Text style={styles.buttonText}>Next</Text>
+                  <Text style={styles.buttonText}>
+                    {selectedIndex === reviews.length - 1 ? "Save" : "Next"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -318,6 +320,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  buttonDisabled: {
+    backgroundColor: '#ccc', // Grey color for disabled button
+  },
   buttonPrevious: {
     backgroundColor: '#6c757d',
   },
@@ -337,4 +342,3 @@ const styles = StyleSheet.create({
 });
 
 export default ReviewSectionScreen;
-

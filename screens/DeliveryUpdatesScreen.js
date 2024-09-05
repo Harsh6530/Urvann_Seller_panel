@@ -11,7 +11,7 @@ const DeliveryUpdatesScreen = ({ route }) => {
 
   const fetchDeliveryUpdates = async () => {
     try {
-      const response = await axios.get(`http://10.117.4.182:5001/api/data/${sellerName}`);
+      const response = await axios.get(`https://urvann-seller-panel-version.onrender.com/api/data/${sellerName}`);
       setDeliveryUpdates(response.data.deliveryUpdates);
       setLoading(false);
     } catch (error) {

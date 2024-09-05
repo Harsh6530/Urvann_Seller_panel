@@ -11,7 +11,7 @@ const DeliveredScreen = () => {
   const sellerName = route.params?.sellerName;  // Use optional chaining
 
   useEffect(() => {
-    axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+    axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
       .then(response => {
         setRiders(response.data);
       })
@@ -19,7 +19,7 @@ const DeliveredScreen = () => {
   }, [sellerName]);
 
   const handleRefresh = async () => {
-    axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+    axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
       .then(response => {
         setRiders(response.data);
       })

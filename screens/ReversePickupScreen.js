@@ -10,7 +10,7 @@ const ReversePickupScreen = ({ route }) => {
   const { sellerName } = route.params; // Extract sellerName from route params
 
   useEffect(() => {
-    axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+    axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
       .then(response => {
         setRiders(response.data);
       })
@@ -18,7 +18,7 @@ const ReversePickupScreen = ({ route }) => {
   }, [sellerName]);
 
   const handleRefresh = async () => {
-    axios.get(`http://10.117.4.182:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+    axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
       .then(response => {
         setRiders(response.data);
       })

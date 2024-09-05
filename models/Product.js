@@ -4,9 +4,9 @@ const payableSchema = new mongoose.Schema({
   image_url: String,
   Name: String,
   'Additional Info': String,
-  Size: Number,
+  Size: String,
   Pot: String,
-  "Seller Price": Number,
+  "Seller Price": String,
   seller_name: String
 });
 
