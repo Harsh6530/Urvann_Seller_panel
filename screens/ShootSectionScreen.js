@@ -232,23 +232,30 @@ const ShootSectionScreen = ({ route }) => {
           required
         />
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, (selectedIndex === 0 ? styles.buttonDisabled : null)]}
-            onPress={handlePrevious}
-            disabled={selectedIndex === 0}
-          >
-            <Text style={styles.buttonText}>Previous</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleNext}
-          // disabled={selectedIndex === products.length - 1}
-          >
-            <Text style={styles.buttonText}>
-              {selectedIndex === products.length - 1 ? "Save" : "Next"}
-            </Text>
-          </TouchableOpacity>
+<View style={styles.buttonContainer}>
+          {/* Conditionally render Previous button only if not on the first product */}
+          {selectedIndex > 0 && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handlePrevious}
+            >
+              <Text style={styles.buttonText}>Previous</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Conditionally render Save or Next button */}
+          {selectedIndex === products.length - 1 ? (
+            <TouchableOpacity style={styles.button} onPress={saveData}>
+              <Text style={styles.buttonText}>Save</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleNext}
+            >
+              <Text style={styles.buttonText}>Next</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </KeyboardAwareScrollView>

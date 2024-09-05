@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors());
 
 // MongoDB connection URI for UrvannRiderApp database
-const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
+const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannRiderApp?retryWrites=true&w=majority&appName=UrvannGenie';
 
 // Connect to MongoDB for UrvannRiderApp database
 mongoose.connect(MONGODB_URI)
