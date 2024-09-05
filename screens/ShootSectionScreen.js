@@ -234,7 +234,7 @@ const ShootSectionScreen = ({ route }) => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, (selectedIndex === 0 ? styles.buttonDisabled : null)]}
             onPress={handlePrevious}
             disabled={selectedIndex === 0}
           >
@@ -243,9 +243,11 @@ const ShootSectionScreen = ({ route }) => {
           <TouchableOpacity
             style={styles.button}
             onPress={handleNext}
-            disabled={selectedIndex === products.length - 1}
+          // disabled={selectedIndex === products.length - 1}
           >
-            <Text style={styles.buttonText}>Next</Text>
+            <Text style={styles.buttonText}>
+              {selectedIndex === products.length - 1 ? "Save" : "Next"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -354,6 +356,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2, // Elevation for Android
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc', // Grey color for disabled button
   },
   buttonText: {
     color: '#fff',

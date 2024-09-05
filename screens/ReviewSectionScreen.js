@@ -203,7 +203,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
 
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonPrevious]}
+                  style={[styles.button, styles.buttonPrevious, (selectedIndex === 0 ? styles.buttonDisabled : null)]}
                   onPress={handlePrevious}
                   disabled={selectedIndex === 0}
                 >
@@ -212,9 +212,11 @@ const ReviewSectionScreen = ({ navigation, route }) => {
                 <TouchableOpacity
                   style={[styles.button, styles.buttonNext]}
                   onPress={handleNext}
-                  disabled={selectedIndex === reviews.length - 1}
+                  // disabled={selectedIndex === reviews.length - 1}
                 >
-                  <Text style={styles.buttonText}>Next</Text>
+                  <Text style={styles.buttonText}>
+                    {selectedIndex === reviews.length - 1 ? "Save" : "Next"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -317,6 +319,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc', // Grey color for disabled button
   },
   buttonPrevious: {
     backgroundColor: '#6c757d',
