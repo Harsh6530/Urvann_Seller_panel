@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 
-const payableSchema = new mongoose.Schema({
-  image_url: String,
+const reviewSchema = new mongoose.Schema({
+  _id: mongoose.Schema.Types.ObjectId,
   name: String,
   sku: String,
-  _id: String,
+  image_url: String,
   "Current Price": Number,
   "Suggested Price": Number,
   Available: Number,
   seller_name: String
 });
 
-const Review = mongoose.model('Review', payableSchema, 'Review');
+const Review = mongoose.model('Review', reviewSchema, 'Review');
 
 module.exports = Review;
