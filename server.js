@@ -222,9 +222,17 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
     // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     // Build the query object based on the pickup_status query parameter
-    let query = { seller_name };
+    let query = { 
+      seller_name,
+      $or: [
+        { metafield_order_type: { $in: ['Replacement'] } },
+        { metafield_order_type: { $eq: null } },
+        { metafield_order_type: { $eq: '' } } // Add condition for empty string
+      ]
+    };
     if (pickup_status) {
       query.Pickup_Status = pickup_status === 'picked' ? 'Picked' : 'Not Picked';
+      
     }
 
     // Fetch products for the seller based on the query
