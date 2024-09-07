@@ -15,7 +15,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://10.117.4.182:5001/api/products', {
+      const response = await axios.get('https://urvann-seller-panel-version.onrender.com/api/products', {
         params: {
           seller_name: sellerName,
           rider_code: riderCode !== 'all' ? riderCode : 'all',

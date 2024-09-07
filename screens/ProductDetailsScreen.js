@@ -18,8 +18,8 @@ const ProductDetailsScreen = ({ route }) => {
       console.log('Seller Name:', sellerName);
       console.log('Driver Name:', driverName);
       const endpoint = pickupStatus === 'Picked'
-        ? 'http://10.117.4.182:5001/api/picked-products'
-        : 'http://10.117.4.182:5001/api/not-picked-products';
+        ? 'https://urvann-seller-panel-version.onrender.com/api/picked-products'
+        : 'https://urvann-seller-panel-version.onrender.com/api/not-picked-products';
 
       const response = await axios.get(endpoint, {
         params: {
