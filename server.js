@@ -687,23 +687,23 @@ app.get('/api/not-picked-products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
   
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
@@ -767,26 +767,26 @@ app.get('/api/picked-products', async (req, res) => {
   console.log('Query Params:', { seller_name, rider_code }); // Debugging
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      console.log('Seller not found'); // Debugging
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   console.log('Seller not found'); // Debugging
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    console.log('Matching Collection Name:', matchingCollectionName); // Debugging
+    // console.log('Matching Collection Name:', matchingCollectionName); // Debugging
 
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
@@ -851,23 +851,23 @@ app.get('/api/reverse-pickup-products-delivered', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
@@ -925,23 +925,23 @@ app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
   const { seller_name, rider_code } = req.query;
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
