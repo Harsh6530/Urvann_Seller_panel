@@ -12,6 +12,7 @@ const Payable = require('./models/Payable');
 const Refund = require('./models/Refund');
 const Product = require('./models/Product');
 const Review = require('./models/Review');
+const Route = require('./models/route');
 
 app.use(express.json());
 app.use(cors());
@@ -24,19 +25,19 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected to UrvannRiderApp'))
   .catch(err => console.error(err));
 
-// MongoDB connection URI for UrvannHubRouteData database
-const MONGODB_URI_ROUTE = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannHubRouteData?retryWrites=true&w=majority&appName=UrvannGenie';
+// // MongoDB connection URI for UrvannHubRouteData database
+// const MONGODB_URI_ROUTE = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannHubRouteData?retryWrites=true&w=majority&appName=UrvannGenie';
 
-// Create a separate connection for the UrvannHubRouteData database
-const routeConnection = mongoose.createConnection(MONGODB_URI_ROUTE);
+// // Create a separate connection for the UrvannHubRouteData database
+// const routeConnection = mongoose.createConnection(MONGODB_URI_ROUTE);
 
-routeConnection.on('connected', () => {
-  console.log('MongoDB connected to UrvannHubRouteData');
-});
+// routeConnection.on('connected', () => {
+//   console.log('MongoDB connected to UrvannHubRouteData');
+// });
 
-routeConnection.on('error', (err) => {
-  console.error(err);
-});
+// routeConnection.on('error', (err) => {
+//   console.error(err);
+// });
 
 // Hardcoded JWT secret key (use this only for development/testing)
 const JWT_SECRET = 'your_secret_key'; // Replace 'your_secret_key' with a strong secret key
@@ -72,45 +73,26 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
-  try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    try {
+        // Check if user exists
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ message: 'Driver not found' });
+        }
+
+        // Check if password matches
+        if (password !== user.password) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+
+        res.status(200).json({ token });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-
-    if (password !== user.password) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Fetch all collection names in UrvannHubRouteData
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
-
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: username });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
-
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
-
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
-
-    // Proceed with further processing using the matched Route collection
-    const token = jwt.sign({ userId: user._id, collection: matchingCollectionName }, JWT_SECRET, { expiresIn: '1h' });
-
-    res.status(200).json({ token });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
 });
 
 
@@ -219,25 +201,25 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
   const { pickup_status } = req.query; // pickup_status is optional
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // // Check each collection for the seller's name
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // // Dynamically set the collection for the Route model
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     // Build the query object based on the pickup_status query parameter
     let query = { seller_name };
@@ -269,32 +251,44 @@ app.get('/api/sellers/:seller_name/drivers/not-picked', async (req, res) => {
   const { seller_name } = req.params;
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // // Check each collection for the seller's name
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // // Dynamically set the collection for the Route model
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
     // Fetch all unique driver names for the seller where Pickup_Status is "Not Picked"
-    const drivers = await Route.distinct('Driver Name', { seller_name, Pickup_Status: 'Not Picked' });
+    const drivers = await Route.distinct('Driver Name', { seller_name, 
+      Pickup_Status: 'Not Picked',  // Filter for Pickup_Status "Picked"
+        $or: [
+          { metafield_order_type: { $in: ['Replacement'] } },
+          { metafield_order_type: { $eq: null } },
+          { metafield_order_type: { $eq: '' } }     // Add condition for empty string
+        ] });
 
     // If you need to get the count of "Not Picked" products per driver
     const driversWithCounts = await Promise.all(drivers.map(async (driverName) => {
       const productCount = await Route.aggregate([
-        { $match: { seller_name, 'Driver Name': driverName, Pickup_Status: 'Not Picked' } },
+        { $match: { seller_name, 'Driver Name': driverName, 
+          Pickup_Status: 'Not Picked',  // Ensure only "Picked" products are counted
+              $or: [
+                { metafield_order_type: { $in: ['Replacement'] } },
+                { metafield_order_type: { $eq: null } },
+                { metafield_order_type: { $eq: '' } }
+              ] } },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
 
@@ -317,33 +311,45 @@ app.get('/api/sellers/:seller_name/drivers/picked', async (req, res) => {
   const { seller_name } = req.params;
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // // Check each collection for the seller's name
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // // Dynamically set the collection for the Route model
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
     
     // Fetch all unique driver names for the seller where Pickup_Status is "Picked"
-    const drivers = await Route.distinct('Driver Name', { seller_name, Pickup_Status: 'Picked' });
+    const drivers = await Route.distinct('Driver Name', { seller_name, 
+      Pickup_Status: 'Picked',  // Ensure only "Picked" products are counted
+                        $or: [
+                            { metafield_order_type: { $in: ['Replacement'] } },
+                            { metafield_order_type: { $eq: null } },
+                            { metafield_order_type: { $eq: '' } }
+                        ] });
 
     // If you need to get the count of "Picked" products per driver
     const driversWithCounts = await Promise.all(drivers.map(async (driverName) => {
       const productCount = await Route.aggregate([
-        { $match: { seller_name, 'Driver Name': driverName, Pickup_Status: 'Picked' } },
+        { $match: { seller_name, 'Driver Name': driverName, 
+          Pickup_Status: 'Picked',  // Ensure only "Picked" products are counted
+                        $or: [
+                            { metafield_order_type: { $in: ['Replacement'] } },
+                            { metafield_order_type: { $eq: null } },
+                            { metafield_order_type: { $eq: '' } }
+                        ] } },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
 
@@ -371,31 +377,42 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
   console.log(`Fetching riders for seller: ${seller_name}`);
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // // Check each collection for the seller's name
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // // Dynamically set the collection for the Route model
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     // Find the distinct riders (drivers) for the given seller, order types, and delivery status
     const riders = await Route.find({
       seller_name,
-      metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
-      Delivery_Status: 'Delivered' // Fetch only those with Delivery_Status as Delivered
+      $or: [
+        // Special case for 'Delivery Failed'
+        {
+            metafield_order_type: 'Delivery Failed',
+            'Delivery_Status': 'Delivered'
+        },
+        // Existing logic for 'Replacement' and 'Reverse Pickup'
+        {
+            metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+            metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
+            'Delivery_Status': 'Delivered'
+        }
+    ]
     }).distinct('Driver Name');
 
     const ridersWithCounts = await Promise.all(riders.map(async (driverName) => {
@@ -404,9 +421,20 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
           $match: {
             'Driver Name': driverName,
             seller_name,
-            metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
-            Delivery_Status: 'Delivered' // Match only products that are delivered
-          }
+            $or: [
+                // Special case for 'Delivery Failed'
+                {
+                    metafield_order_type: 'Delivery Failed',
+                    'Delivery_Status': 'Delivered'
+                },
+                // Existing logic for 'Replacement' and 'Reverse Pickup'
+                {
+                    metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+                    metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
+                    'Delivery_Status': 'Delivered'
+                }
+            ]
+        }
         },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
@@ -429,31 +457,42 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (
   console.log(`Fetching riders for seller: ${seller_name}`);
 
   try {
-    const collections = await routeConnection.db.listCollections().toArray();
-    let matchingCollectionName;
+    // const collections = await routeConnection.db.listCollections().toArray();
+    // let matchingCollectionName;
 
-    // Check each collection for the seller's name
-    for (const collection of collections) {
-      const currentCollection = routeConnection.collection(collection.name);
-      const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
-      if (foundSeller) {
-        matchingCollectionName = collection.name;
-        break;
-      }
-    }
+    // // Check each collection for the seller's name
+    // for (const collection of collections) {
+    //   const currentCollection = routeConnection.collection(collection.name);
+    //   const foundSeller = await currentCollection.findOne({ seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') } });
+    //   if (foundSeller) {
+    //     matchingCollectionName = collection.name;
+    //     break;
+    //   }
+    // }
 
-    if (!matchingCollectionName) {
-      return res.status(404).json({ message: 'Seller not found in any collection' });
-    }
+    // if (!matchingCollectionName) {
+    //   return res.status(404).json({ message: 'Seller not found in any collection' });
+    // }
 
-    // Dynamically set the collection for the Route model
-    const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
+    // // Dynamically set the collection for the Route model
+    // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     // Find the distinct riders (drivers) for the given seller, order types, and delivery status
     const riders = await Route.find({
       seller_name,
-      metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
-      Delivery_Status: 'Not Delivered' // Fetch only those with Delivery_Status as Delivered
+      $or: [
+        // Special case for 'Delivery Failed'
+        {
+            metafield_order_type: 'Delivery Failed',
+            'Delivery_Status': 'Not Delivered'
+        },
+        // Existing logic for 'Replacement' and 'Reverse Pickup'
+        {
+            metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+            metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
+            'Delivery_Status': 'Not Delivered'
+        }
+    ]
     }).distinct('Driver Name');
 
     const ridersWithCounts = await Promise.all(riders.map(async (driverName) => {
@@ -462,9 +501,20 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (
           $match: {
             'Driver Name': driverName,
             seller_name,
-            metafield_order_type: { $in: ['Delivery Failed', 'Replacement', 'Reverse Pickup'] },
-            Delivery_Status: 'Not Delivered' // Match only products that are delivered
-          }
+            $or: [
+                // Special case for 'Delivery Failed'
+                {
+                    metafield_order_type: 'Delivery Failed',
+                    'Delivery_Status': 'Not Delivered'
+                },
+                // Existing logic for 'Replacement' and 'Reverse Pickup'
+                {
+                    metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+                    metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
+                    'Delivery_Status': 'Not Delivered'
+                }
+            ]
+        }
         },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
       ]);
