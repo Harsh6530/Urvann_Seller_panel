@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch,  } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import axios from 'axios';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RefreshButton from '../components/RefeshButton';
@@ -14,9 +14,11 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     CurrentPrice: '',
     SuggestedPrice: '',
     Available: false,
+    additionalInfo: '', // New field for additional info
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [percentageChange, setPercentageChange] = useState(0); // For price percentage change
 
   const fetchReviews = async () => {
     try {
@@ -38,14 +40,6 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     fetchReviews();
   }, [sellerName]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchReviews();
-    setRefreshing(false);
-  };
-
   const updateFormData = (review) => {
     setFormData({
       name: review.name || '',
@@ -53,6 +47,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
       CurrentPrice: review["Current Price"] || '',
       SuggestedPrice: review["Suggested Price"] || '',
       Available: review.Available === 1, // Convert from number to boolean
+      additionalInfo: review.additional_info, // New field initialized as empty
     });
   };
 
@@ -67,6 +62,12 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     });
   };
 
+  const handlePercentageChange = (percentage) => {
+    setPercentageChange(percentage);
+    const updatedSuggestedPrice = (parseFloat(formData.CurrentPrice) * (1 + percentage / 100)).toFixed(2);
+    setFormData({ ...formData, SuggestedPrice: updatedSuggestedPrice });
+  };
+
   const saveData = async () => {
     try {
       const reviewId = reviews[selectedIndex]._id;
@@ -75,20 +76,18 @@ const ReviewSectionScreen = ({ navigation, route }) => {
         throw new Error('Review ID is missing');
       }
 
-      // Prepare the data to be updated
       const updatedReviewData = {
         ...formData,
         "Current Price": parseFloat(formData.CurrentPrice) || 0,
         "Suggested Price": parseFloat(formData.SuggestedPrice) || 0,
-        Available: formData.Available ? 'yes' : 'no'
+        Available: formData.Available ? 'yes' : 'no',
+        additionalInfo: formData.additionalInfo, // Send additional info
       };
 
-      // Send the update request to the server
       const response = await axios.put(`https://urvann-seller-panel-version.onrender.com/api/reviews/${reviewId}`, updatedReviewData);
 
-      // Update the local reviews array with the updated review data
       const updatedReviews = [...reviews];
-      updatedReviews[selectedIndex] = response.data; // Assuming the response contains the updated review
+      updatedReviews[selectedIndex] = response.data;
 
       setReviews(updatedReviews);
 
@@ -100,7 +99,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
   };
 
   const handleNext = async () => {
-    await saveData(); // Save the current review data before navigating
+    await saveData();
     if (selectedIndex < reviews.length - 1) {
       setSelectedIndex(selectedIndex + 1);
       updateFormData(reviews[selectedIndex + 1]);
@@ -137,7 +136,7 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     <KeyboardAwareScrollView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardShouldPersistTaps="handled" // Ensures taps are handled even when keyboard is open
+      keyboardShouldPersistTaps="handled"
     >
       <View>
         {selectedReview && (
@@ -148,18 +147,26 @@ const ReviewSectionScreen = ({ navigation, route }) => {
             <View style={styles.formContainer}>
               <Text style={styles.label}>Name</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, styles.nonEditable]} // Non-editable field with lighter color
                 value={formData.name}
                 onChangeText={(text) => handleInputChange('name', text)}
                 placeholder="Enter name"
                 editable={false}
               />
 
+              <Text style={styles.label}>Additional Information</Text>
+              <TextInput
+                style={[styles.input, styles.editableInput]} // Additional info field
+                value={formData.additionalInfo}
+                onChangeText={(text) => handleInputChange('additionalInfo', text)}
+                placeholder="Enter additional info"
+              />
+
               <View style={styles.rowContainer}>
                 <View style={styles.skuContainer}>
                   <Text style={styles.label}>SKU</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, styles.nonEditable]} // Non-editable field
                     value={formData.sku}
                     onChangeText={(text) => handleInputChange('sku', text)}
                     placeholder="Enter SKU"
@@ -172,32 +179,51 @@ const ReviewSectionScreen = ({ navigation, route }) => {
                   <Switch
                     value={formData.Available}
                     onValueChange={handleAvailableChange}
-                    trackColor={{ true: '#007bff', false: '#ccc' }} // Color when the switch is on/off
-                    thumbColor={formData.Available ? '#fff' : '#fff'} // Color of the switch thumb
+                    trackColor={{ true: '#007bff', false: '#ccc' }}
+                    thumbColor={formData.Available ? '#fff' : '#fff'}
                   />
                 </View>
               </View>
 
               {formData.Available && (
                 <>
-                  <Text style={styles.label}>Current Seller Price</Text>
-                  <TextInput
-                    style={[styles.input, styles.currentPriceInput]}
-                    value={formData.CurrentPrice ? formData.CurrentPrice.toString() : ''}
-                    onChangeText={(text) => handleInputChange('CurrentPrice', text)}
-                    placeholder="Enter current price"
-                    keyboardType="numeric"
-                    editable={false} // Make this field non-editable
-                  />
+                  <View style={styles.priceContainer}>
+                    <View style={styles.halfWidth}>
+                      <Text style={styles.label}>Current Seller Price</Text>
+                      <TextInput
+                        style={[styles.input, styles.currentPriceInput, styles.nonEditable]} // Non-editable with lighter color
+                        value={formData.CurrentPrice ? formData.CurrentPrice.toString() : ''}
+                        onChangeText={(text) => handleInputChange('CurrentPrice', text)}
+                        placeholder="Enter current price"
+                        keyboardType="numeric"
+                        editable={false}
+                      />
+                    </View>
 
-                  <Text style={styles.label}>New Seller Price</Text>
-                  <TextInput
-                    style={[styles.input, styles.suggestedPriceInput]}
-                    value={formData.SuggestedPrice ? formData.SuggestedPrice.toString() : ''}
-                    onChangeText={(text) => handleInputChange('SuggestedPrice', text)}
-                    placeholder="Enter suggested price"
-                    keyboardType="numeric"
-                  />
+                    <View style={styles.halfWidth}>
+                      <Text style={styles.label}>New Seller Price</Text>
+                      <TextInput
+                        style={[styles.input, styles.suggestedPriceInput, styles.editableInput]} // Editable field
+                        value={formData.SuggestedPrice ? formData.SuggestedPrice.toString() : ''}
+                        onChangeText={(text) => handleInputChange('SuggestedPrice', text)}
+                        placeholder="Enter suggested price"
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={styles.label}>Change Percentage</Text>
+                  <View style={styles.percentageButtons}>
+                    <TouchableOpacity onPress={() => handlePercentageChange(-5)} style={styles.percentageButton}>
+                      <Text style={styles.percentageButtonText}>-5%</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handlePercentageChange(-10)} style={styles.percentageButton}>
+                      <Text style={styles.percentageButtonText}>-10%</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handlePercentageChange(0)} style={styles.percentageButton}>
+                      <Text style={styles.percentageButtonText}>No Change</Text>
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
 
@@ -212,7 +238,6 @@ const ReviewSectionScreen = ({ navigation, route }) => {
                 <TouchableOpacity
                   style={[styles.button, styles.buttonNext]}
                   onPress={handleNext}
-                  // disabled={selectedIndex === reviews.length - 1}
                 >
                   <Text style={styles.buttonText}>
                     {selectedIndex === reviews.length - 1 ? "Save" : "Next"}
@@ -230,116 +255,142 @@ const ReviewSectionScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
   },
   scrollViewContainer: {
-    flexGrow: 1,
-    paddingBottom: 24,
+    alignItems: 'center',
+    paddingBottom: 16,
   },
   imageContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   productImage: {
-    width: 250,
+    width: 250, // Increased size for better visibility
     height: 250,
     resizeMode: 'cover',
-    borderRadius: 12,
+    borderRadius: 12, // Rounded corners for the image
     borderWidth: 2,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    borderColor: '#ddd', // Subtle border color
   },
   formContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: 24,
-    width: '100%', // Adjust form container width as needed
+    width: '100%',
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
+    color: '#000',
   },
   input: {
-    height: 45, // Reduced height for input boxes
+    height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    backgroundColor: '#fafafa',
-    fontSize: 16,
-    color: '#333',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    marginBottom: 8,
   },
-  currentPriceInput: {
-    width: '100%', // Make the input field full width
+  nonEditable: {
+    backgroundColor: '#f0f0f0',
+    color: '#999',
   },
-  suggestedPriceInput: {
-    width: '100%', // Make the input field full width
+  editableInput: {
+    borderColor: "#007bff",
+    color: '#000',
   },
   rowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   skuContainer: {
-    flex: 1,
-    marginRight: 10,
+    width: '55%', // Set SKU container width to 
+    marginRight: 5,
   },
   availableContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    // justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  halfWidth: {
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  currentPriceInput: {
+    backgroundColor: '#f0f0f0',
+  },
+  suggestedPriceInput: {
+    color: '#000',
+  },
+  percentageButtons: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  percentageButton: {
+    flex: 1, // Ensures buttons take up equal width
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 4,
+    marginHorizontal: 4, // Space between buttons
+    alignItems: 'center', // Center text horizontally
+    justifyContent: 'center', // Center text vertically
+  },
+  percentageButtonText: {
+    color: '#fff',
+    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 20,
   },
   button: {
     backgroundColor: '#007bff',
-    padding: 14,
-    borderRadius: 8,
+    padding: 16, // Increased padding for better touch experience
+    borderRadius: 8, // More rounded corners
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: 2,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#000', // Shadow for subtle elevation effect
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 2,
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc', // Grey color for disabled button
+    elevation: 2, // Elevation for Android
+    marginBottom: 20,
+    fontWeight: 600,
   },
   buttonPrevious: {
-    backgroundColor: '#6c757d',
+    backgroundColor: '#007bff', // Blue color for Previous button
+    marginRight: 10,
+    
   },
   buttonNext: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#007bff', // Blue color for Next button
+    marginLeft: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#b0b0b0', // Grey color for disabled button
+    opacity: 0.5,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
   },
   errorText: {
     color: 'red',
+    fontSize: 18,
     textAlign: 'center',
-    fontSize: 16,
+    marginBottom: 20,
   },
 });
 
-export default ReviewSectionScreen;
 
+export default ReviewSectionScreen;
