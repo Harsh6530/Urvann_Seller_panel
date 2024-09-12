@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   wrapper: {},
   scrollViewContainer: {
     flexGrow: 1,
-    backgroundColor: '#f0f4f8',
+    backgroundColor: '#f5f5f5',
   },
   headerContainer: {
     backgroundColor: '#ffffff',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   deliveryStatusText: {
-    marginTop: 5,
+    // marginTop: 1,
     fontWeight: 'bold',
   },
   modalContainer: {
