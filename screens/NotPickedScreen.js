@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button,  } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Button, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RefreshButton from '../components/RefeshButton';
@@ -8,6 +8,7 @@ const NotPickedScreen = () => {
   const { params } = useRoute();
   const { sellerName } = params;
   const [ridersWithCounts, setRidersWithCounts] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [combinedProductCount, setCombinedProductCount] = useState(0);
   const navigation = useNavigation();
 
@@ -31,6 +32,12 @@ const NotPickedScreen = () => {
     fetchNotPicked();
   }, [sellerName]);
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchNotPicked();
+    setRefreshing(false);  // Stop refreshing after fetching data
+  };
+
   const handleRiderPress = (driverName) => {
     navigation.navigate('ProductDetailsScreen', { sellerName, driverName, pickupStatus: 'Not Picked' });
   };
@@ -49,6 +56,9 @@ const NotPickedScreen = () => {
         <FlatList
           data={ridersWithCounts}
           keyExtractor={(item, index) => index.toString()}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleRiderPress(item.driverName)}>
               <View style={styles.tile}>
@@ -73,7 +83,7 @@ const NotPickedScreen = () => {
           )}
         />
       )}
-      <RefreshButton onRefresh={fetchNotPicked} />
+      
     </View>
   );
 };
@@ -81,9 +91,9 @@ const NotPickedScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4f8',
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 15,
+    paddingTop: 10,
   },
   title: {
     fontSize: 20,
@@ -94,7 +104,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 14,
     marginVertical: 8,
     backgroundColor: '#fff',
     borderColor: '#ddd',
@@ -110,7 +120,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 14,
     elevation: 5,
     marginVertical: 10,
     backgroundColor: '#e0e0e0',
@@ -124,20 +134,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   noItemsText: {
-    fontSize: 22,
+    fontSize: 18,
     //fontWeight: 'bold',
     color: '#333',
     marginBottom: 10,
     textAlign: 'center',
   },
   productCount: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     marginRight: 10,
   },
   text: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#333',
   },
 });

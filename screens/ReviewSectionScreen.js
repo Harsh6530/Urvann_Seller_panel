@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Image, TextInput, ActivityIndicator, Platform, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import axios from 'axios';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import RefreshButton from '../components/RefeshButton';
 
 const ReviewSectionScreen = ({ navigation, route }) => {
   const { sellerName } = route.params; // Get sellerName from route params
@@ -127,7 +126,6 @@ const ReviewSectionScreen = ({ navigation, route }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error || "No data"}</Text>
-        <RefreshButton onRefresh={fetchReviews} />
       </View>
     );
   }
@@ -257,7 +255,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   scrollViewContainer: {
     alignItems: 'center',
@@ -385,10 +383,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorText: {
-    color: 'red',
-    fontSize: 18,
+    color: '#d9534f', // Red color for errors
     textAlign: 'center',
-    marginBottom: 20,
+    marginVertical: 16,
+    fontSize: 16,
   },
 });
 

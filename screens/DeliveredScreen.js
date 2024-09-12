@@ -14,7 +14,7 @@ const DeliveredScreen = () => {
   const fetchSellers = () => {
     if (sellerName) {
       // Fetch data from API
-      axios.get(`http://10.5.16.226:5001/api/driver/${sellerName}/reverse-pickup-sellers`)
+      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
         .then(response => {
           setRiders(response.data);
         })
@@ -85,15 +85,15 @@ const DeliveredScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f5f5f5',
     paddingHorizontal: 15,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   tile: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 14,
     marginVertical: 8,
     backgroundColor: '#fff',
     borderColor: '#ddd',
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   productCount: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
   },
   errorText: {
