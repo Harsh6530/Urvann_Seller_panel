@@ -110,6 +110,9 @@ const ProductDetailsScreen = ({ route }) => {
   // Convert combined products object to array
   const combinedProductsArray = Object.values(combinedProducts);
 
+  // Sort combined products by total_item_quantity in descending order
+  combinedProductsArray.sort((a, b) => b.total_item_quantity - a.total_item_quantity);
+
   const groupedProducts = {};
   products.forEach(product => {
     if (!groupedProducts[product['FINAL']]) {
