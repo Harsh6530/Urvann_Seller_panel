@@ -1,49 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity,  } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import axios from 'axios';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import RefreshButton from '../components/RefeshButton';
+import { useNavigation, useRoute } from '@react-navigation/native'; // Import useRoute
 
 const DeliveredScreen = () => {
   const [riders, setRiders] = useState([]);
+  const [error, setError] = useState(null); // State for error handling
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
-  const route = useRoute();  // Access route using useRoute
-  const sellerName = route.params?.sellerName;  // Use optional chaining
+  const route = useRoute(); // Get route from useRoute hook
+  const { sellerName } = route.params || {}; // Extract sellerName from route params
+
+  const fetchSellers = () => {
+    if (sellerName) {
+      // Fetch data from API
+      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
+        .then(response => {
+          setRiders(response.data);
+        })
+        .catch(error => {
+          console.error(`Error fetching not delivered reverse pickup riders for ${sellerName}:`, error);
+          setError('Failed to load data. Please try again later.'); // Set error message
+        });
+    }
+  };
 
   useEffect(() => {
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
-      .then(response => {
-        setRiders(response.data);
-      })
-      .catch(error => console.error(`Error fetching reverse pickup riders for ${sellerName}:`, error));
+    fetchSellers();
   }, [sellerName]);
 
-  const handleRefresh = async () => {
-    axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers`)
-      .then(response => {
-        setRiders(response.data);
-      })
-      .catch(error => console.error(`Error fetching reverse pickup riders for ${sellerName}:`, error));
-  }
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchSellers();
+    setRefreshing(false);  // Stop refreshing after fetching data
+  };
 
   const handleRiderPress = (driverName) => {
+    // Define the endpoint for the PickupDetails screen
     const endpoint = '/api/reverse-pickup-products-delivered';  // Adjust this endpoint as needed
+  
     navigation.navigate('ReverseDelieveredScreen', {
       sellerName,
       driverName,
       endpoint,
-      previousScreen: 'DeliveredScreen'  // Pass the screen name here
+      previousScreen: 'DeliveredScreen'
     });
   };
+
+  // Render loading or error state
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.tile}
+          <TouchableOpacity 
+            style={styles.tile} 
             onPress={() => handleRiderPress(item.driverName)}
           >
             <Text style={styles.riderName}>
@@ -55,7 +78,6 @@ const DeliveredScreen = () => {
           </TouchableOpacity>
         )}
       />
-      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };
@@ -63,15 +85,15 @@ const DeliveredScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f5f5f5',
     paddingHorizontal: 15,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   tile: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 14,
     marginVertical: 8,
     backgroundColor: '#fff',
     borderColor: '#ddd',
@@ -89,8 +111,14 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   productCount: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

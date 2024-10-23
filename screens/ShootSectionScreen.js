@@ -4,7 +4,6 @@ import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons'; // For the down arrow icon
 import { FontAwesome } from '@expo/vector-icons'; // For the star icon
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // Import the KeyboardAwareScrollView
-import RefreshButton from '../components/RefeshButton';
 
 const ShootSectionScreen = ({ route }) => {
   const { sellerName } = route.params;
@@ -42,10 +41,6 @@ const ShootSectionScreen = ({ route }) => {
     fetchProducts();
   }, [sellerName]);
 
-  const handleRefresh = async () => {
-    await fetchProducts();
-  };
-
   const updateFormData = (product) => {
     setFormData({
       Name: product.Name || '',
@@ -65,7 +60,8 @@ const ShootSectionScreen = ({ route }) => {
   const handlePotTypeChange = (value) => {
     setPotType(value);
     setFormData({ ...formData, Pot: value });
-    setShowPotInput(value === 'Others');
+    // Close the dropdown if "Others" or any other option is selected
+    setShowPotInput(false);
   };
 
   const saveData = async () => {
@@ -123,7 +119,6 @@ const ShootSectionScreen = ({ route }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error || "No data"}</Text>
-        <RefreshButton onRefresh={fetchProducts} />
       </View>
     );
   }
@@ -183,7 +178,7 @@ const ShootSectionScreen = ({ route }) => {
           <Text style={styles.pickerText}>{potType}</Text>
           <Ionicons name="chevron-down" size={20} color="#333" style={styles.pickerIcon} />
         </TouchableOpacity>
-        {showPotInput ? (
+        {showPotInput && potType !== 'Others' ? (
           <View style={styles.pickerOptions}>
             <TouchableOpacity onPress={() => handlePotTypeChange('Nursery bag')} style={styles.pickerOption}>
               <Text style={styles.pickerOptionText}>Nursery bag</Text>
@@ -214,9 +209,9 @@ const ShootSectionScreen = ({ route }) => {
         {potType === 'Others' && (
           <TextInput
             style={styles.input}
-            value={formData.Pot}
+            value=""
             onChangeText={(text) => handleInputChange('Pot', text)}
-            placeholder="Enter pot type"
+            placeholder="Specify pot type"
           />
         )}
 
@@ -231,32 +226,14 @@ const ShootSectionScreen = ({ route }) => {
           keyboardType="numeric"
           required
         />
-
-<View style={styles.buttonContainer}>
-          {/* Conditionally render Previous button only if not on the first product */}
-          {selectedIndex > 0 && (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handlePrevious}
-            >
-              <Text style={styles.buttonText}>Previous</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Conditionally render Save or Next button */}
-          {selectedIndex === products.length - 1 ? (
-            <TouchableOpacity style={styles.button} onPress={saveData}>
-              <Text style={styles.buttonText}>Save</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleNext}
-            >
-              <Text style={styles.buttonText}>Next</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      </View>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+          <Text style={styles.buttonText}>Previous</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleNext}>
+          <Text style={styles.buttonText}>Next</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
   );
@@ -363,6 +340,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2, // Elevation for Android
+    marginBottom: 20,
   },
   buttonDisabled: {
     backgroundColor: '#ccc', // Grey color for disabled button

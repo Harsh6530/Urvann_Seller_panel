@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cors());
 
 // MongoDB connection URI for UrvannRiderApp database
-const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannRiderApp?retryWrites=true&w=majority&appName=UrvannGenie';
+const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
 
 // Connect to MongoDB for UrvannRiderApp database
 mongoose.connect(MONGODB_URI)
@@ -222,9 +222,17 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
     // const Route = routeConnection.model('Route', require('./models/route').schema, matchingCollectionName);
 
     // Build the query object based on the pickup_status query parameter
-    let query = { seller_name };
+    let query = { 
+      seller_name,
+      $or: [
+        { metafield_order_type: { $in: ['Replacement'] } },
+        { metafield_order_type: { $eq: null } },
+        { metafield_order_type: { $eq: '' } } // Add condition for empty string
+      ]
+    };
     if (pickup_status) {
       query.Pickup_Status = pickup_status === 'picked' ? 'Picked' : 'Not Picked';
+      
     }
 
     // Fetch products for the seller based on the query
@@ -246,7 +254,6 @@ app.get('/api/sellers/:seller_name/all', async (req, res) => {
 });
 
 
-// GET /api/sellers/:seller_name/drivers/not-picked
 app.get('/api/sellers/:seller_name/drivers/not-picked', async (req, res) => {
   const { seller_name } = req.params;
 
@@ -362,7 +369,7 @@ app.get('/api/sellers/:seller_name/drivers/picked', async (req, res) => {
     }));
 
     // Log the final result
-    console.log('Drivers with counts:', driversWithCounts);
+    // console.log('Drivers with counts:', driversWithCounts);
 
     // Send response with the list of drivers and their product counts
     res.json(driversWithCounts);
@@ -374,7 +381,7 @@ app.get('/api/sellers/:seller_name/drivers/picked', async (req, res) => {
 
 app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
   const { seller_name } = req.params;
-  console.log(`Fetching riders for seller: ${seller_name}`);
+  //console.log(`Fetching riders for seller: ${seller_name}`);
 
   try {
     // const collections = await routeConnection.db.listCollections().toArray();
@@ -408,10 +415,41 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
         },
         // Existing logic for 'Replacement' and 'Reverse Pickup'
         {
-            metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
-            metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
-            'Delivery_Status': 'Delivered'
+            $and: [
+                {
+                    $or: [
+                        {
+                            metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+                            metafield_delivery_status: { $in: [
+                                'Z-Replacement Successful', 
+                                'Z-Reverse Successful', 
+                                'A-Delivery Failed (CNR)', 
+                                'A-Delivery failed (Rescheduled)', 
+                                'Z-Delivery Failed (customer cancelled)', 
+                                'A-Delivery Failed (rider side)'
+                            ] },
+                            'Delivery_Status': 'Delivered'
+                        },
+                        {
+                            metafield_order_type: { $exists: false }, // Handles cases where metafield_order_type is missing
+                            metafield_delivery_status: { $in: [
+                                'Z-Replacement Successful', 
+                                'Z-Reverse Successful', 
+                                'A-Delivery Failed (CNR)', 
+                                'A-Delivery failed (Rescheduled)', 
+                                'Z-Delivery Failed (customer cancelled)', 
+                                'A-Delivery Failed (rider side)'
+                            ] },
+                            'Delivery_Status': 'Delivered'
+                        }
+                    ]
+                },
+                {
+                    'Delivery_Status': 'Delivered'
+                }
+            ]
         }
+        
     ]
     }).distinct('Driver Name');
 
@@ -422,18 +460,49 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
             'Driver Name': driverName,
             seller_name,
             $or: [
-                // Special case for 'Delivery Failed'
-                {
-                    metafield_order_type: 'Delivery Failed',
-                    'Delivery_Status': 'Delivered'
-                },
-                // Existing logic for 'Replacement' and 'Reverse Pickup'
-                {
-                    metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
-                    metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
-                    'Delivery_Status': 'Delivered'
-                }
-            ]
+              // Special case for 'Delivery Failed'
+              {
+                  metafield_order_type: 'Delivery Failed',
+                  'Delivery_Status': 'Delivered'
+              },
+              // Existing logic for 'Replacement' and 'Reverse Pickup'
+              {
+                  $and: [
+                      {
+                          $or: [
+                              {
+                                  metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+                                  metafield_delivery_status: { $in: [
+                                      'Z-Replacement Successful', 
+                                      'Z-Reverse Successful', 
+                                      'A-Delivery Failed (CNR)', 
+                                      'A-Delivery failed (Rescheduled)', 
+                                      'Z-Delivery Failed (customer cancelled)', 
+                                      'A-Delivery Failed (rider side)'
+                                  ] },
+                                  'Delivery_Status': 'Delivered'
+                              },
+                              {
+                                  metafield_order_type: { $exists: false }, // Handles cases where metafield_order_type is missing
+                                  metafield_delivery_status: { $in: [
+                                      'Z-Replacement Successful', 
+                                      'Z-Reverse Successful', 
+                                      'A-Delivery Failed (CNR)', 
+                                      'A-Delivery failed (Rescheduled)', 
+                                      'Z-Delivery Failed (customer cancelled)', 
+                                      'A-Delivery Failed (rider side)'
+                                  ] },
+                                  'Delivery_Status': 'Delivered'
+                              }
+                          ]
+                      },
+                      {
+                          'Delivery_Status': 'Delivered'
+                      }
+                  ]
+              }
+              
+          ]
         }
         },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
@@ -454,7 +523,7 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers', async (req, res) => {
 
 app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (req, res) => {
   const { seller_name } = req.params;
-  console.log(`Fetching riders for seller: ${seller_name}`);
+  //console.log(`Fetching riders for seller: ${seller_name}`);
 
   try {
     // const collections = await routeConnection.db.listCollections().toArray();
@@ -488,10 +557,41 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (
         },
         // Existing logic for 'Replacement' and 'Reverse Pickup'
         {
-            metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
-            metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
-            'Delivery_Status': 'Not Delivered'
+            $and: [
+                {
+                    $or: [
+                        {
+                            metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+                            metafield_delivery_status: { $in: [
+                                'Z-Replacement Successful', 
+                                'Z-Reverse Successful', 
+                                'A-Delivery Failed (CNR)', 
+                                'A-Delivery failed (Rescheduled)', 
+                                'Z-Delivery Failed (customer cancelled)', 
+                                'A-Delivery Failed (rider side)'
+                            ] },
+                            'Delivery_Status': 'Not Delivered'
+                        },
+                        {
+                            metafield_order_type: { $exists: false }, // Handles cases where metafield_order_type is missing
+                            metafield_delivery_status: { $in: [
+                                'Z-Replacement Successful', 
+                                'Z-Reverse Successful', 
+                                'A-Delivery Failed (CNR)', 
+                                'A-Delivery failed (Rescheduled)', 
+                                'Z-Delivery Failed (customer cancelled)', 
+                                'A-Delivery Failed (rider side)'
+                            ] },
+                            'Delivery_Status': 'Not Delivered'
+                        }
+                    ]
+                },
+                {
+                    'Delivery_Status': 'Not Delivered'
+                }
+            ]
         }
+        
     ]
     }).distinct('Driver Name');
 
@@ -502,18 +602,49 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (
             'Driver Name': driverName,
             seller_name,
             $or: [
-                // Special case for 'Delivery Failed'
-                {
-                    metafield_order_type: 'Delivery Failed',
-                    'Delivery_Status': 'Not Delivered'
-                },
-                // Existing logic for 'Replacement' and 'Reverse Pickup'
-                {
-                    metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
-                    metafield_delivery_status: { $in: ['Replacement Pickup Successful', 'Reverse Pickup Successful'] },
-                    'Delivery_Status': 'Not Delivered'
-                }
-            ]
+              // Special case for 'Delivery Failed'
+              {
+                  metafield_order_type: 'Delivery Failed',
+                  'Delivery_Status': 'Not Delivered'
+              },
+              // Existing logic for 'Replacement' and 'Reverse Pickup'
+              {
+                  $and: [
+                      {
+                          $or: [
+                              {
+                                  metafield_order_type: { $in: ['Replacement', 'Reverse Pickup'] },
+                                  metafield_delivery_status: { $in: [
+                                      'Z-Replacement Successful', 
+                                      'Z-Reverse Successful', 
+                                      'A-Delivery Failed (CNR)', 
+                                      'A-Delivery failed (Rescheduled)', 
+                                      'Z-Delivery Failed (customer cancelled)', 
+                                      'A-Delivery Failed (rider side)'
+                                  ] },
+                                  'Delivery_Status': 'Not Delivered'
+                              },
+                              {
+                                  metafield_order_type: { $exists: false }, // Handles cases where metafield_order_type is missing
+                                  metafield_delivery_status: { $in: [
+                                      'Z-Replacement Successful', 
+                                      'Z-Reverse Successful', 
+                                      'A-Delivery Failed (CNR)', 
+                                      'A-Delivery failed (Rescheduled)', 
+                                      'Z-Delivery Failed (customer cancelled)', 
+                                      'A-Delivery Failed (rider side)'
+                                  ] },
+                                  'Delivery_Status': 'Not Delivered'
+                              }
+                          ]
+                      },
+                      {
+                          'Delivery_Status': 'Not Delivered'
+                      }
+                  ]
+              }
+              
+          ]
         }
         },
         { $group: { _id: null, totalQuantity: { $sum: '$total_item_quantity' } } }
@@ -531,6 +662,7 @@ app.get('/api/driver/:seller_name/reverse-pickup-sellers-not-delivered', async (
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 app.get('/api/products/:seller_name', async (req, res) => {
@@ -591,13 +723,18 @@ app.put('/api/reviews/:id', async (req, res) => {
           updatedData.Available = updatedData.Available === 'yes' ? 1 : 0;
       }
 
-      // Ensure the correct field name is being used
       if (updatedData["Suggested Price"] !== undefined) {
           updatedData["Suggested Price"] = parseFloat(updatedData["Suggested Price"]) || 0;
       }
 
       if (updatedData["Current Price"] !== undefined) {
           updatedData["Current Price"] = parseFloat(updatedData["Current Price"]) || 0;
+      }
+
+      // Handle additional_info field
+      if (updatedData.additionalInfo !== undefined) {
+          updatedData.additional_info = updatedData.additionalInfo || ''; // Ensure it's a string
+          delete updatedData.additionalInfo; // Remove the old key
       }
 
       const updatedReview = await Review.findByIdAndUpdate(reviewId, updatedData, { new: true });
@@ -612,6 +749,8 @@ app.put('/api/reviews/:id', async (req, res) => {
       res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+
 
 // app.get('/api/products', async (req, res) => {
 //   const { seller_name, rider_code } = req.query;
@@ -775,7 +914,12 @@ app.get('/api/not-picked-products', async (req, res) => {
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-      Pickup_Status: 'Not Picked'
+      Pickup_Status: 'Not Picked',  // Add condition for Pickup_Status being 'Not Picked'
+            $or: [
+                { metafield_order_type: 'Replacement' },
+                { metafield_order_type: { $eq: null } },
+                { metafield_order_type: { $eq: '' } }
+            ]
     };
 
     if (rider_code !== 'all') {
@@ -832,7 +976,7 @@ app.get('/api/not-picked-products', async (req, res) => {
 app.get('/api/picked-products', async (req, res) => {
   const { seller_name, rider_code } = req.query;
   
-  console.log('Query Params:', { seller_name, rider_code }); // Debugging
+  //console.log('Query Params:', { seller_name, rider_code }); // Debugging
 
   try {
     // const collections = await routeConnection.db.listCollections().toArray();
@@ -858,21 +1002,26 @@ app.get('/api/picked-products', async (req, res) => {
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-      Pickup_Status: 'Picked'
+      Pickup_Status: 'Picked',  // Add condition for Pickup_Status being 'Picked'
+            $or: [
+                { metafield_order_type: 'Replacement' },
+                { metafield_order_type: { $eq: null } },
+                { metafield_order_type: { $eq: '' } }
+            ]
     };
 
     if (rider_code !== 'all') {
       query["Driver Name"] = { $regex: new RegExp(`^${rider_code}$`, 'i') };
     }
 
-    console.log('Query:', query); // Debugging
+    //console.log('Query:', query); // Debugging
 
     const filteredData = await Route.find(query)
       .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status') 
       .sort({ GMV: -1 })
       .lean();
 
-    console.log('Filtered Data:', filteredData); // Debugging
+    //console.log('Filtered Data:', filteredData); // Debugging
 
     const skuList = filteredData.map(data => data.line_item_sku);
     const photos = await Photo.find({ sku: { $in: skuList } }).lean();
@@ -887,14 +1036,14 @@ app.get('/api/picked-products', async (req, res) => {
       line_item_price: Number(data.line_item_price) // Ensure it's a number
     }));
 
-    console.log('Merged Data:', mergedData); // Debugging
+    //console.log('Merged Data:', mergedData); // Debugging
 
     const orderCodeQuantities = mergedData.reduce((acc, data) => {
       acc[data.FINAL] = (acc[data.FINAL] || 0) + data.total_item_quantity;
       return acc;
     }, {});
 
-    console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
+    //console.log('Order Code Quantities:', orderCodeQuantities); // Debugging
 
     const products = mergedData.map(data => ({
       FINAL: data.FINAL,
@@ -939,8 +1088,35 @@ app.get('/api/reverse-pickup-products-delivered', async (req, res) => {
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-      metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] },
-      Delivery_Status: 'Delivered' // Add the condition to fetch only delivered products
+      $or: [
+        {
+            $and: [
+                { metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] } },
+                { metafield_delivery_status: { $in: [
+                    'Z-Replacement Successful',
+                    'Z-Reverse Successful',
+                    'A-Delivery Failed (CNR)',
+                    'A-Delivery failed (Rescheduled)',
+                    'Z-Delivery Failed (customer cancelled)',
+                    'A-Delivery Failed (rider side)'
+                ] } }
+            ]
+        },
+        {
+            $and: [
+                { metafield_order_type: { $in: [null, ''] } }, // Handles empty or null metafield_order_type
+                { metafield_delivery_status: { $in: [
+                    'Z-Replacement Successful',
+                    'Z-Reverse Successful',
+                    'A-Delivery Failed (CNR)',
+                    'A-Delivery failed (Rescheduled)',
+                    'Z-Delivery Failed (customer cancelled)',
+                    'A-Delivery Failed (rider side)'
+                ] } }
+            ]
+        }
+    ],
+    Delivery_Status: 'Delivered' // Added filter for 'Delivered' status
     };
 
     if (rider_code !== 'all') {
@@ -1013,8 +1189,35 @@ app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
 
     const query = { 
       seller_name: { $regex: new RegExp(`^${seller_name}$`, 'i') },
-      metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] },
-      Delivery_Status: 'Not Delivered' // Add the condition to fetch only delivered products
+      $or: [
+        {
+            $and: [
+                { metafield_order_type: { $in: ['Reverse Pickup', 'Replacement', 'Delivery Failed'] } },
+                { metafield_delivery_status: { $in: [
+                    'Z-Replacement Successful',
+                    'Z-Reverse Successful',
+                    'A-Delivery Failed (CNR)',
+                    'A-Delivery failed (Rescheduled)',
+                    'Z-Delivery Failed (customer cancelled)',
+                    'A-Delivery Failed (rider side)'
+                ] } }
+            ]
+        },
+        {
+            $and: [
+                { metafield_order_type: { $in: [null, ''] } }, // Handles empty or null metafield_order_type
+                { metafield_delivery_status: { $in: [
+                    'Z-Replacement Successful',
+                    'Z-Reverse Successful',
+                    'A-Delivery Failed (CNR)',
+                    'A-Delivery failed (Rescheduled)',
+                    'Z-Delivery Failed (customer cancelled)',
+                    'A-Delivery Failed (rider side)'
+                ] } }
+            ]
+        }
+    ],
+    Delivery_Status: 'Not Delivered' // Added filter for 'Delivered' status
     };
 
     if (rider_code !== 'all') {
@@ -1152,12 +1355,12 @@ app.get('/api/data/:sellerName', async (req, res) => {
 app.get('/api/summary/:sellerName', async (req, res) => {
   try {
     const sellerName = req.params.sellerName;
-    console.log(`Fetching summary for seller: ${sellerName}`);
+    //console.log(`Fetching summary for seller: ${sellerName}`);
 
     const summary = await Summary.findOne({ Name: sellerName });
 
     if (!summary) {
-      console.log('Summary not found');
+      //console.log('Summary not found');
       return res.status(404).json({ message: 'Summary not found' });
     }
 

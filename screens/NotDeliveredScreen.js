@@ -1,43 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity,  } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import axios from 'axios';
 import { useNavigation, useRoute } from '@react-navigation/native'; // Import useRoute
-import RefreshButton from '../components/RefeshButton';
 
 const NotDeliveredScreen = () => {
   const [riders, setRiders] = useState([]);
   const [error, setError] = useState(null); // State for error handling
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
   const route = useRoute(); // Get route from useRoute hook
   const { sellerName } = route.params || {}; // Extract sellerName from route params
 
+  const fetchSellers = () => {
+    if (sellerName) {
+      // Fetch data from API
+      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
+        .then(response => {
+          setRiders(response.data);
+        })
+        .catch(error => {
+          console.error(`Error fetching not delivered reverse pickup riders for ${sellerName}:`, error);
+          setError('Failed to load data. Please try again later.'); // Set error message
+        });
+    }
+  };
+
   useEffect(() => {
-    if (sellerName) {
-      // Fetch data from API
-      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
-        .then(response => {
-          setRiders(response.data);
-        })
-        .catch(error => {
-          console.error(`Error fetching not delivered reverse pickup riders for ${sellerName}:`, error);
-          setError('Failed to load data. Please try again later.'); // Set error message
-        });
-    }
+    fetchSellers();
   }, [sellerName]);
-  
- 
-  const handleRefresh = async () => {
-    if (sellerName) {
-      // Fetch data from API
-      axios.get(`https://urvann-seller-panel-version.onrender.com/api/driver/${sellerName}/reverse-pickup-sellers-not-delivered`)
-        .then(response => {
-          setRiders(response.data);
-        })
-        .catch(error => {
-          console.error(`Error fetching not delivered reverse pickup riders for ${sellerName}:`, error);
-          setError('Failed to load data. Please try again later.'); // Set error message
-        });
-    }
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchSellers();
+    setRefreshing(false);  // Stop refreshing after fetching data
   };
 
   const handleRiderPress = (driverName) => {
@@ -57,7 +52,6 @@ const NotDeliveredScreen = () => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
-        <RefreshButton onRefresh={handleRefresh} />
       </View>
     );
   }
@@ -67,6 +61,9 @@ const NotDeliveredScreen = () => {
       <FlatList
         data={riders}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.tile} 
@@ -81,7 +78,6 @@ const NotDeliveredScreen = () => {
           </TouchableOpacity>
         )}
       />
-      <RefreshButton onRefresh={handleRefresh} />
     </View>
   );
 };
@@ -89,15 +85,15 @@ const NotDeliveredScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
-    paddingHorizontal: 15,
-    paddingTop: 20,
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   tile: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 14,
     marginVertical: 8,
     backgroundColor: '#fff',
     borderColor: '#ddd',
@@ -115,7 +111,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   productCount: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
   },
   errorText: {
