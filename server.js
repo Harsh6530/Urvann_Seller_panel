@@ -12,7 +12,7 @@ const Payable = require('./models/Payable');
 const Refund = require('./models/Refund');
 const Product = require('./models/Product');
 const Review = require('./models/Review');
-const Route = require('./models/route');
+const Route = require('./models/route')
 
 app.use(express.json());
 app.use(cors());
@@ -927,7 +927,7 @@ app.get('/api/not-picked-products', async (req, res) => {
     }
 
     const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status pin') 
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status bin') 
       .sort({ GMV: -1 })
       .lean();
 
@@ -964,7 +964,7 @@ app.get('/api/not-picked-products', async (req, res) => {
       line_item_price: data.line_item_price,
       Pickup_Status: data.Pickup_Status,
       GMV: data.GMV,
-      pin: data.pin
+      bin: data.bin
     }));
 
     res.json({ orderCodeQuantities, products });
@@ -1018,7 +1018,7 @@ app.get('/api/picked-products', async (req, res) => {
     //console.log('Query:', query); // Debugging
 
     const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status pin') 
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status bin') 
       .sort({ GMV: -1 })
       .lean();
 
@@ -1055,7 +1055,7 @@ app.get('/api/picked-products', async (req, res) => {
       line_item_price: data.line_item_price,
       Pickup_Status: data.Pickup_Status,
       GMV: data.GMV,
-      pin: data.pin
+      bin: data.bin
     }));
 
     res.json({ orderCodeQuantities, products });
@@ -1126,7 +1126,7 @@ app.get('/api/reverse-pickup-products-delivered', async (req, res) => {
     }
 
     const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status pin') 
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status bin') 
       .sort({ GMV: -1 })
       .lean();
 
@@ -1158,7 +1158,7 @@ app.get('/api/reverse-pickup-products-delivered', async (req, res) => {
       Delivery_Status: data.Delivery_Status,
       metafield_order_type: data.metafield_order_type,
       GMV: data.GMV,
-      pin: data.pin
+      bin: data.bin
     }));
 
     res.json({ orderCodeQuantities, products });
@@ -1228,7 +1228,7 @@ app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
     }
 
     const filteredData = await Route.find(query)
-      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status pin') 
+      .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price metafield_order_type Delivery_Status bin') 
       .sort({ GMV: -1 })
       .lean();
 
@@ -1260,7 +1260,7 @@ app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
       Delivery_Status: data.Delivery_Status,
       metafield_order_type: data.metafield_order_type,
       GMV: data.GMV,
-      pin: data.pin
+      bin: data.bin
     }));
 
     res.json({ orderCodeQuantities, products });
