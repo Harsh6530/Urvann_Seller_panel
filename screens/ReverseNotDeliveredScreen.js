@@ -62,6 +62,9 @@ const ReverseDeliveredScreen = ({ route }) => {
               <Text style={styles.boldText}>SKU: </Text>{item.line_item_sku}
             </Text>
             <Text>
+              <Text style={styles.boldText}>Pin: </Text>{item.pin} {/* Ensure pin is rendered */}
+            </Text>
+            <Text>
               <Text style={styles.boldText}>Name: </Text>{item.line_item_name}
             </Text>
             <Text>

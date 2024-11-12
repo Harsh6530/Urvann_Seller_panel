@@ -23,7 +23,8 @@ const routeSchema = new mongoose.Schema({
   'Driver Name': { type: String, required: true },
   Pickup_Status: { type: String, required: true },
   metafield_delivery_status: { type: String, required: true },
-  metafield_order_type: { type: String, required: true }
+  metafield_order_type: { type: String, required: true },
+  pin: { type: String, required: true}
 }, { collection: 'route' });
 
 module.exports = mongoose.model('Route', routeSchema);
