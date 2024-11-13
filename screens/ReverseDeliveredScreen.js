@@ -61,9 +61,12 @@ const ReverseDeliveredScreen = ({ route }) => {
             <Text>
               <Text style={styles.boldText}>SKU: </Text>{item.line_item_sku}
             </Text>
-            <Text>
-              <Text style={styles.boldText}>bin: </Text>{item.bin} {/* Ensure pin is rendered */}
-            </Text>
+            {/* Show bin only if it is available */}
+            {item.bin && (
+              <Text>
+                <Text style={styles.boldText}>bin: </Text>{item.bin}
+              </Text>
+            )}
             <Text>
               <Text style={styles.boldText}>Name: </Text>{item.line_item_name}
             </Text>
@@ -92,19 +95,50 @@ const ReverseDeliveredScreen = ({ route }) => {
 
   // Process products to group by SKU and sum up quantities for the combined list
   const combinedProducts = {};
-  products.forEach(product => {
-    if (!combinedProducts[product.line_item_sku]) {
-      combinedProducts[product.line_item_sku] = {
-        ...product,
-        total_item_quantity: 0
-      };
-    }
-    combinedProducts[product.line_item_sku].total_item_quantity += product.total_item_quantity;
-    combinedProducts[product.line_item_sku].Delivery_Status = ''; // Ensure delivery status is empty in combined list
-  });
+products.forEach(product => {
+  const sku = product.line_item_sku;
 
-  // Convert combined products object to array
-  const combinedProductsArray = Object.values(combinedProducts);
+  // Initialize the product group if not present
+  if (!combinedProducts[sku]) {
+    combinedProducts[sku] = {
+      ...product,
+      total_item_quantity: 0,
+      bin: product.bin || '', // Use the bin value if available, otherwise set to an empty string
+    };
+  }
+
+  // Accumulate the total quantity
+  combinedProducts[sku].total_item_quantity += product.total_item_quantity;
+
+  // Ensure that the `bin` value remains consistent; if it was set initially, don't override it
+  if (!combinedProducts[sku].bin && product.bin) {
+    combinedProducts[sku].bin = product.bin;
+  }
+
+  // Pickup status remains empty in the combined list
+  combinedProducts[sku].Pickup_Status = '';
+});
+
+// Convert combined products object to array
+const combinedProductsArray = Object.values(combinedProducts);
+
+// Updated Sorting Logic
+combinedProductsArray.sort((a, b) => {
+  const binA = a.bin ? Number(a.bin) : null; // Convert to number or set to null if undefined
+  const binB = b.bin ? Number(b.bin) : null; // Convert to number or set to null if undefined
+
+  // Sort by bin value first (ascending)
+  if (binA !== null && binB !== null) {
+    return binA - binB; // Numeric comparison for bins
+  }
+
+  // If one has a null bin value, place it after the one with a non-null bin value
+  if (binA === null && binB !== null) return 1;
+  if (binA !== null && binB === null) return -1;
+
+  // If both bins are null, sort by total_item_quantity (descending)
+  return b.total_item_quantity - a.total_item_quantity;
+});
 
   const groupedProducts = {};
   products.forEach(product => {
@@ -146,6 +180,12 @@ const ReverseDeliveredScreen = ({ route }) => {
                       <Text>
                         <Text style={styles.boldText}>SKU: </Text>{product.line_item_sku}
                       </Text>
+                      {/* Show bin only if it is available */}
+                      {product.bin && (
+                        <Text>
+                          <Text style={styles.boldText}>bin: </Text>{product.bin}
+                        </Text>
+                      )}
                       <Text>
                         <Text style={styles.boldText}>Name: </Text>{product.line_item_name}
                       </Text>

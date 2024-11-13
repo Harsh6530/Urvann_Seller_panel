@@ -191,6 +191,12 @@ const groupedProducts = {};
                       <Text>
                         <Text style={styles.boldText}>SKU: </Text>{product.line_item_sku}
                       </Text>
+                      {/* Show bin only if it is available */}
+                      {product.bin && (
+                        <Text>
+                          <Text style={styles.boldText}>bin: </Text>{product.bin}
+                        </Text>
+                      )}
                       <Text>
                         <Text style={styles.boldText}>Name: </Text>{product.line_item_name}
                       </Text>
