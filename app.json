@@ -16,7 +16,7 @@
       "bundleIdentifier": "com.example.urvannSeller"
     },
     "android": {
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/512x512.png",
         "backgroundColor": "#fff"

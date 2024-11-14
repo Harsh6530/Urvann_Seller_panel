@@ -157,9 +157,30 @@ const groupedProducts = {};
     groupedProducts[product['FINAL']].push(product);
   });
 
-  const sortedFinalCodes = Object.keys(groupedProducts).sort((a, b) => a.localeCompare(b));
-
-
+  const sortedFinalCodes = Object.keys(groupedProducts).sort((a, b) => {
+    // Get the first product of each group to compare bins
+    const firstProductA = groupedProducts[a][0];
+    const firstProductB = groupedProducts[b][0];
+  
+    const binA = firstProductA.bin ? Number(firstProductA.bin) : null;
+    const binB = firstProductB.bin ? Number(firstProductB.bin) : null;
+  
+    // Sort by bin value first (ascending)
+    if (binA !== null && binB !== null) {
+      return binA - binB;
+    }
+  
+    // If one has a null bin value, place it after the one with a non-null bin value
+    if (binA === null && binB !== null) return 1;
+    if (binA !== null && binB === null) return -1;
+  
+    // If both bins are null, sort by total_item_quantity (descending)
+    const totalQuantityA = groupedProducts[a].reduce((sum, product) => sum + product.total_item_quantity, 0);
+    const totalQuantityB = groupedProducts[b].reduce((sum, product) => sum + product.total_item_quantity, 0);
+  
+    return totalQuantityB - totalQuantityA;
+  });
+  
 
   return (
     <View style={styles.container}>
@@ -177,44 +198,63 @@ const groupedProducts = {};
         </>
       ) : (
         <Swiper style={styles.wrapper} showsButtons loop={false}>
-          {sortedFinalCodes.map(finalCode => (
-            <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
-              <View style={styles.headerContainer}>
-                <Text style={styles.header}>Order Code: {finalCode}</Text>
-                <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
-              </View>
-              {groupedProducts[finalCode].map((product, index) => (
-                <TouchableWithoutFeedback key={index} onPress={() => handleImagePress(product)}>
-                  <View style={styles.productContainer}>
-                    <LazyImage source={{ uri: product.image1 }} style={styles.image} />
-                    <View style={styles.textContainer}>
-                      <Text>
-                        <Text style={styles.boldText}>SKU: </Text>{product.line_item_sku}
-                      </Text>
-                      {/* Show bin only if it is available */}
-                      {product.bin && (
+          {sortedFinalCodes.map(finalCode => {
+            // Sort products inside each order code group using the same logic
+            const sortedProducts = groupedProducts[finalCode].sort((a, b) => {
+              const binA = a.bin ? Number(a.bin) : null;
+              const binB = b.bin ? Number(b.bin) : null;
+
+              // Sort by bin value first (ascending)
+              if (binA !== null && binB !== null) {
+                return binA - binB;
+              }
+
+              // If one has a null bin value, place it after the one with a non-null bin value
+              if (binA === null && binB !== null) return 1;
+              if (binA !== null && binB === null) return -1;
+
+              // If both bins are null, sort by total_item_quantity (descending)
+              return b.total_item_quantity - a.total_item_quantity;
+            });
+
+            return (
+              <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
+                <View style={styles.headerContainer}>
+                  <Text style={styles.header}>Order Code: {finalCode}</Text>
+                  <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
+                </View>
+                {sortedProducts.map((product, index) => (
+                  <TouchableWithoutFeedback key={index} onPress={() => handleImagePress(product)}>
+                    <View style={styles.productContainer}>
+                      <LazyImage source={{ uri: product.image1 }} style={styles.image} />
+                      <View style={styles.textContainer}>
                         <Text>
-                          <Text style={styles.boldText}>bin: </Text>{product.bin}
+                          <Text style={styles.boldText}>SKU: </Text>{product.line_item_sku}
                         </Text>
-                      )}
-                      <Text>
-                        <Text style={styles.boldText}>Name: </Text>{product.line_item_name}
-                      </Text>
-                      <Text>
-                        <Text style={styles.boldText}>Price: </Text>₹{product.line_item_price !== undefined ? product.line_item_price.toFixed(2) : 'N/A'}
-                      </Text>
-                      <Text>
-                        <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
-                      </Text>
-                      <Text style={[styles.pickupStatusText, { color: product.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
-                        {product.Pickup_Status}
-                      </Text>
+                        {product.bin && (
+                          <Text>
+                            <Text style={styles.boldText}>bin: </Text>{product.bin}
+                          </Text>
+                        )}
+                        <Text>
+                          <Text style={styles.boldText}>Name: </Text>{product.line_item_name}
+                        </Text>
+                        <Text>
+                          <Text style={styles.boldText}>Price: </Text>₹{product.line_item_price !== undefined ? product.line_item_price.toFixed(2) : 'N/A'}
+                        </Text>
+                        <Text>
+                          <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
+                        </Text>
+                        <Text style={[styles.pickupStatusText, { color: product.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
+                          {product.Pickup_Status}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                </TouchableWithoutFeedback>
-              ))}
-            </ScrollView>
-          ))}
+                  </TouchableWithoutFeedback>
+                ))}
+              </ScrollView>
+            );
+          })}
         </Swiper>
       )}
 
@@ -231,6 +271,11 @@ const groupedProducts = {};
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>SKU: </Text>{selectedProduct.line_item_sku}
                 </Text>
+                {selectedProduct.bin && (
+                          <Text style={styles.modalText}>
+                            <Text style={styles.boldModalText}>bin: </Text>{selectedProduct.bin}
+                          </Text>
+                        )}
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Name: </Text>{selectedProduct.line_item_name}
                 </Text>
