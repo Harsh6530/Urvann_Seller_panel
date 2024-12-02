@@ -4,6 +4,10 @@ const { Types } = mongoose;
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const app = express();
+require("dotenv").config();
+
+const connectToDB = require('./middlewares/connectToDB');
+
 const Photo = require('./models/photo');
 const User = require('./models/userDetails');
 const DeliveryUpdate = require('./models/deliveryUpdate');
@@ -17,27 +21,8 @@ const Route = require('./models/route')
 app.use(express.json());
 app.use(cors());
 
-// MongoDB connection URI for UrvannRiderApp database
-const MONGODB_URI = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannSellerApp?retryWrites=true&w=majority&appName=UrvannGenie';
-
-// Connect to MongoDB for UrvannRiderApp database
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected to UrvannSellerApp'))
-  .catch(err => console.error(err));
-
-// // MongoDB connection URI for UrvannHubRouteData database
-// const MONGODB_URI_ROUTE = 'mongodb+srv://sambhav:UrvannGenie01@urvanngenie.u7r4o.mongodb.net/UrvannHubRouteData?retryWrites=true&w=majority&appName=UrvannGenie';
-
-// // Create a separate connection for the UrvannHubRouteData database
-// const routeConnection = mongoose.createConnection(MONGODB_URI_ROUTE);
-
-// routeConnection.on('connected', () => {
-//   console.log('MongoDB connected to UrvannHubRouteData');
-// });
-
-// routeConnection.on('error', (err) => {
-//   console.error(err);
-// });
+// Connect to MongoDB
+connectToDB();
 
 // Hardcoded JWT secret key (use this only for development/testing)
 const JWT_SECRET = 'your_secret_key'; // Replace 'your_secret_key' with a strong secret key
