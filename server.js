@@ -1,6 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const { Types } = mongoose; 
 const cors = require('cors');
 const app = express();
 require("dotenv").config();
@@ -10,10 +8,10 @@ const connectToDB = require('./middlewares/connectToDB');
 const user = require('./controllers/user');
 const dailyUpdates = require('./controllers/dailyUpdates');
 const payout = require('./controllers/payout');
+const reviews = require('./controllers/reviews');
 
 const Photo = require('./models/photo');
 const Product = require('./models/Product');
-const Review = require('./models/Review');
 const Route = require('./models/route')
 
 app.use(express.json());
@@ -629,59 +627,9 @@ app.put('/api/products/:id', async (req, res) => {
 });
 
 // GET endpoint to fetch reviews for a specific seller
-app.get('/api/reviews/:sellerName', async (req, res) => {
-  const { sellerName } = req.params;
+app.get('/api/reviews/:sellerName', reviews.reviewsBySellerName);
 
-  try {
-    const reviews = await Review.find({ seller_name: sellerName });
-    res.json(reviews);
-  } catch (error) {
-    console.error('Error fetching reviews:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-
-app.put('/api/reviews/:id', async (req, res) => {
-  const reviewId = req.params.id;
-
-  if (!Types.ObjectId.isValid(reviewId)) {
-      return res.status(400).json({ message: 'Invalid review ID' });
-  }
-
-  try {
-      const updatedData = req.body;
-
-      if (updatedData.Available !== undefined) {
-          updatedData.Available = updatedData.Available === 'yes' ? 1 : 0;
-      }
-
-      if (updatedData["Suggested Price"] !== undefined) {
-          updatedData["Suggested Price"] = parseFloat(updatedData["Suggested Price"]) || 0;
-      }
-
-      if (updatedData["Current Price"] !== undefined) {
-          updatedData["Current Price"] = parseFloat(updatedData["Current Price"]) || 0;
-      }
-
-      // Handle additional_info field
-      if (updatedData.additionalInfo !== undefined) {
-          updatedData.additional_info = updatedData.additionalInfo || ''; // Ensure it's a string
-          delete updatedData.additionalInfo; // Remove the old key
-      }
-
-      const updatedReview = await Review.findByIdAndUpdate(reviewId, updatedData, { new: true });
-
-      if (!updatedReview) {
-          return res.status(404).json({ message: 'Review not found' });
-      }
-
-      res.json(updatedReview);
-  } catch (error) {
-      console.error('Error updating review:', error.message);
-      res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+app.put('/api/reviews/:id', reviews.reviewsById);
 
 
 
