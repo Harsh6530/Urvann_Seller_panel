@@ -9,11 +9,9 @@ const connectToDB = require('./middlewares/connectToDB');
 
 const user = require('./controllers/user');
 const dailyUpdates = require('./controllers/dailyUpdates');
+const payout = require('./controllers/payout');
 
 const Photo = require('./models/photo');
-const Summary = require('./models/Summary');
-const Payable = require('./models/Payable');
-const Refund = require('./models/Refund');
 const Product = require('./models/Product');
 const Review = require('./models/Review');
 const Route = require('./models/route')
@@ -1279,50 +1277,13 @@ app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
 app.get('/api/data/:sellerName', dailyUpdates.getUpdates);
 
 // Endpoint for Summary
-app.get('/api/summary/:sellerName', async (req, res) => {
-  try {
-    const sellerName = req.params.sellerName;
-    //console.log(`Fetching summary for seller: ${sellerName}`);
-
-    const summary = await Summary.findOne({ Name: sellerName });
-
-    if (!summary) {
-      //console.log('Summary not found');
-      return res.status(404).json({ message: 'Summary not found' });
-    }
-
-    res.json(summary);
-  } catch (err) {
-    console.error('Error fetching summary:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/api/summary/:sellerName', payout.summary);
 
 // Endpoint for Refund
-app.get('/api/refund/:sellerName', async (req, res) => {
-  try {
-    const sellerName = req.params.sellerName;
-    const refunds = await Refund.find({ Seller: sellerName });
-
-    res.json(refunds);
-  } catch (err) {
-    console.error('Error fetching refunds:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/api/refund/:sellerName', payout.refund);
 
 // Endpoint for Payable
-app.get('/api/payable/:sellerName', async (req, res) => {
-  try {
-    const sellerName = req.params.sellerName;
-    const payables = await Payable.find({ seller_name: sellerName });
-
-    res.json(payables);
-  } catch (err) {
-    console.error('Error fetching payables:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/api/payable/:sellerName', payout.payable);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
