@@ -8,9 +8,9 @@ require("dotenv").config();
 const connectToDB = require('./middlewares/connectToDB');
 
 const user = require('./controllers/user');
+const dailyUpdates = require('./controllers/dailyUpdates');
 
 const Photo = require('./models/photo');
-const DeliveryUpdate = require('./models/deliveryUpdate');
 const Summary = require('./models/Summary');
 const Payable = require('./models/Payable');
 const Refund = require('./models/Refund');
@@ -1276,19 +1276,7 @@ app.get('/api/reverse-pickup-products-not-delivered', async (req, res) => {
 
 
 
-app.get('/api/data/:sellerName', async (req, res) => {
-  try {
-    const sellerName = req.params.sellerName;
-
-    // Fetch only the Date, Delivered, and Penalty fields
-    const deliveryUpdates = await DeliveryUpdate.find({ 'Seller name': sellerName }, 'Date Delivered Penalty');
-
-    res.json({ deliveryUpdates });
-  } catch (err) {
-    console.error('Error fetching data:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/api/data/:sellerName', dailyUpdates.getUpdates);
 
 // Endpoint for Summary
 app.get('/api/summary/:sellerName', async (req, res) => {
