@@ -59,6 +59,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   const renderProduct = ({ item }) => {
     const pickupStatusColor = item.Pickup_Status === 'Picked' ? 'green' : 'red';
+    const totalPrice = item.line_item_price * item.total_item_quantity; // Calculate total price
   
     return (
       <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
@@ -78,10 +79,13 @@ const ProductDetailsScreen = ({ route }) => {
               <Text style={styles.boldText}>Name: </Text>{item.line_item_name}
             </Text>
             <Text>
-              <Text style={styles.boldText}>Price: </Text>₹{item.line_item_price !== undefined ? item.line_item_price.toFixed(2) : 'N/A'}
+              <Text style={styles.boldText}>Price per product: </Text>₹{item.line_item_price !== undefined ? item.line_item_price.toFixed(2) : 'N/A'}
             </Text>
             <Text>
               <Text style={styles.boldText}>Quantity: </Text>{item.total_item_quantity}
+            </Text>
+            <Text>
+              <Text style={styles.boldText}>Total Price: </Text>₹{totalPrice.toFixed(2)} {/* Display total price */}
             </Text>
             <Text style={[styles.pickupStatusText, { color: pickupStatusColor }]}>
               {item.Pickup_Status}
@@ -219,8 +223,20 @@ const groupedProducts = {};
 
             return (
               <ScrollView key={finalCode} contentContainerStyle={styles.scrollViewContainer}>
-                <View style={styles.headerContainer}>
-                  <Text style={styles.header}>Order Code: {finalCode}</Text>
+                <View
+                  style={[
+                    styles.headerContainer,
+                    (finalCode.includes('VIP') || finalCode.includes('VVIP')) && styles.vipContainer,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.header,
+                      (finalCode.includes('VIP') || finalCode.includes('VVIP')) && styles.vipText,
+                    ]}
+                  >
+                    Order Code: {finalCode}
+                  </Text>
                   <Text style={styles.subHeader}>Total Quantity: {orderCodeQuantities[finalCode]}</Text>
                 </View>
                 {sortedProducts.map((product, index) => (
@@ -233,19 +249,29 @@ const groupedProducts = {};
                         </Text>
                         {product.bin && (
                           <Text>
-                            <Text style={styles.boldText}>bin: </Text>{product.bin}
+                            <Text style={styles.boldText}>Bin: </Text>{product.bin}
                           </Text>
                         )}
                         <Text>
                           <Text style={styles.boldText}>Name: </Text>{product.line_item_name}
                         </Text>
                         <Text>
-                          <Text style={styles.boldText}>Price: </Text>₹{product.line_item_price !== undefined ? product.line_item_price.toFixed(2) : 'N/A'}
+                          <Text style={styles.boldText}>Price per product: </Text>₹
+                          {product.line_item_price !== undefined ? product.line_item_price.toFixed(2) : 'N/A'}
                         </Text>
                         <Text>
                           <Text style={styles.boldText}>Quantity: </Text>{product.total_item_quantity}
                         </Text>
-                        <Text style={[styles.pickupStatusText, { color: product.Pickup_Status === 'Picked' ? 'green' : 'red' }]}>
+                        <Text>
+                          <Text style={styles.boldText}>Total Price: </Text>₹
+                          {(product.line_item_price * product.total_item_quantity).toFixed(2)}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.pickupStatusText,
+                            { color: product.Pickup_Status === 'Picked' ? 'green' : 'red' },
+                          ]}
+                        >
                           {product.Pickup_Status}
                         </Text>
                       </View>
@@ -253,6 +279,8 @@ const groupedProducts = {};
                   </TouchableWithoutFeedback>
                 ))}
               </ScrollView>
+
+
             );
           })}
         </Swiper>
@@ -280,11 +308,15 @@ const groupedProducts = {};
                   <Text style={styles.boldModalText}>Name: </Text>{selectedProduct.line_item_name}
                 </Text>
                 <Text style={styles.modalText}>
-                  <Text style={styles.boldModalText}>Price: </Text>₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}
+                  <Text style={styles.boldModalText}>Price per product: </Text>₹{selectedProduct.line_item_price !== undefined ? selectedProduct.line_item_price.toFixed(2) : 'N/A'}
                 </Text>
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
                 </Text>
+                <Text style={styles.modalText}>
+                          <Text style={styles.boldModalText}>Total Price: </Text>₹
+                          {(selectedProduct.line_item_price * selectedProduct.total_item_quantity).toFixed(2)}
+                        </Text>
                 {/* <Text style={[styles.statusText, selectedProduct.Pickup_Status === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
                   {selectedProduct.Pickup_Status}
                 </Text> */}
@@ -352,6 +384,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
+  },
+  vipContainer: {
+    borderColor: '#ff0000', // Border color for VIP/VVIP
+    borderWidth: 2, // Thicker border for emphasis
+  },
+  vipText: {
+    color: '#ff0000', // Change the text color to Red
   },
   image: {
     width: 100,

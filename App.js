@@ -31,8 +31,8 @@ const App = () => {
         <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="ProductDetailsScreen" component={ProductDetailsScreen} options={{ title: 'Product Details' }} />
         <Stack.Screen name="RiderCodes" component={RiderCodesScreen} options={{ title: 'Rider Name'}}/>
-        <Stack.Screen name="ReverseDelieveredScreen" component={ReverseDeliveredScreen} options={{ title: 'Reverse Delivered Product Details' }} />
-        <Stack.Screen name="ReverseNotDelieveredScreen" component={ReverseNotDeliveredScreen} options={{ title: 'Reverse Not Delivered Product Details' }} />
+        <Stack.Screen name="ReverseDeliveredScreen" component={ReverseDeliveredScreen} options={{ title: 'Reverse Delivered Product Details' }} />
+        <Stack.Screen name="ReverseNotDeliveredScreen" component={ReverseNotDeliveredScreen} options={{ title: 'Reverse Not Delivered Product Details' }} />
 
       </Stack.Navigator>
     </NavigationContainer>
