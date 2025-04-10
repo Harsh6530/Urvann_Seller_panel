@@ -59,7 +59,7 @@ const ProductDetailsScreen = ({ route }) => {
 
   const renderProduct = ({ item }) => {
     const pickupStatusColor = item.Pickup_Status === 'Picked' ? 'green' : 'red';
-    const totalPrice = item.line_item_price * item.total_item_quantity; // Calculate total price
+    const totalPrice = item.line_item_price * item.line_item_quantity; // Calculate total price
   
     return (
       <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
@@ -264,7 +264,7 @@ const groupedProducts = {};
                         </Text>
                         <Text>
                           <Text style={styles.boldText}>Total Price: </Text>₹
-                          {(product.line_item_price * product.total_item_quantity).toFixed(2)}
+                          {(product.line_item_price * product.line_item_quantity).toFixed(2)}
                         </Text>
                         <Text
                           style={[

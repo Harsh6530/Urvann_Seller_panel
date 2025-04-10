@@ -833,6 +833,7 @@ const notPickedProducts = async (req, res) => {
             line_item_name: data.line_item_name,
             image1: data.image1,
             total_item_quantity: data.total_item_quantity,
+            line_item_quantity: data.line_item_quantity,
             line_item_price: data.line_item_price,
             Pickup_Status: data.Pickup_Status,
             GMV: data.GMV,
