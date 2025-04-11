@@ -57,6 +57,7 @@ const ProductDetailsScreen = ({ route }) => {
     setModalVisible(true);
   };
 
+  //for the combined list
   const renderProduct = ({ item }) => {
     const pickupStatusColor = item.Pickup_Status === 'Picked' ? 'green' : 'red';
     const totalPrice = item.line_item_price * item.line_item_quantity; // Calculate total price
@@ -300,10 +301,10 @@ const groupedProducts = {};
                   <Text style={styles.boldModalText}>SKU: </Text>{selectedProduct.line_item_sku}
                 </Text>
                 {selectedProduct.bin && (
-                          <Text style={styles.modalText}>
-                            <Text style={styles.boldModalText}>bin: </Text>{selectedProduct.bin}
-                          </Text>
-                        )}
+                  <Text style={styles.modalText}>
+                    <Text style={styles.boldModalText}>bin: </Text>{selectedProduct.bin}
+                  </Text>
+                )}
                 <Text style={styles.modalText}>
                   <Text style={styles.boldModalText}>Name: </Text>{selectedProduct.line_item_name}
                 </Text>
@@ -314,9 +315,9 @@ const groupedProducts = {};
                   <Text style={styles.boldModalText}>Quantity: </Text>{selectedProduct.total_item_quantity}
                 </Text>
                 <Text style={styles.modalText}>
-                          <Text style={styles.boldModalText}>Total Price: </Text>₹
-                          {(selectedProduct.line_item_price * selectedProduct.total_item_quantity).toFixed(2)}
-                        </Text>
+                  <Text style={styles.boldModalText}>Total Price: </Text>₹
+                  {(selectedProduct.line_item_price * selectedProduct.line_item_quantity).toFixed(2)}
+                </Text>
                 {/* <Text style={[styles.statusText, selectedProduct.Pickup_Status === "Picked" ? styles.pickedStatus : styles.notPickedStatus]}>
                   {selectedProduct.Pickup_Status}
                 </Text> */}
