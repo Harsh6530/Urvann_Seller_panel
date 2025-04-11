@@ -799,7 +799,7 @@ const notPickedProducts = async (req, res) => {
         }
 
         const filteredData = await Route.find(query)
-            .select('FINAL line_item_sku line_item_name total_item_quantity GMV line_item_price Pickup_Status bin')
+            .select('FINAL line_item_sku line_item_name total_item_quantity line_item_quantity GMV line_item_price Pickup_Status bin')
             .sort({ GMV: -1 })
             .lean();
 
