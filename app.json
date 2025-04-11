@@ -2,7 +2,7 @@
   "expo": {
     "name": "Urvann Saathi",
     "slug": "urvann_app",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/App_icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
       "bundleIdentifier": "com.example.urvannSeller"
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 11,
       "adaptiveIcon": {
         "foregroundImage": "./assets/512x512.png",
         "backgroundColor": "#fff"
@@ -37,7 +37,7 @@
     "plugins": [
       "expo-router"
     ],
-    "runtimeVersion": "1.0.2",
+    "runtimeVersion": "1.0.3",
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
